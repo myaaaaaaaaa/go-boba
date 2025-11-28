@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type post struct {
@@ -75,6 +76,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	var b strings.Builder
 
+	// Scroll indicator
+	b.WriteString(fmt.Sprintf("\n---\n%d/%d", m.selectionStart+1, len(m.posts)))
+
 	// Determine the slice of posts to render
 	start := m.viewportOffset
 	end := min(m.viewportOffset+m.height/4, len(m.posts))
@@ -90,13 +94,12 @@ func (m model) View() string {
 
 		b.WriteString(post.title)
 		b.WriteString("\n")
-		b.WriteString("    ")
-		b.WriteString(truncate(post.description, 3))
-		b.WriteString("\n")
+		b.WriteString(lipgloss.JoinHorizontal(lipgloss.Center,
+			"    ",
+			truncate(post.description, 3),
+		))
+		b.WriteString("\n\n")
 	}
-
-	// Add a scroll indicator
-	b.WriteString(fmt.Sprintf("\n---\n%d/%d", m.selectionStart+1, len(m.posts)))
 
 	return b.String()
 }
@@ -106,7 +109,7 @@ func main() {
 	p := tea.NewProgram(model{
 		posts: generatePosts(),
 		cb:    func(p []post) tea.Model { rt = p; return nil },
-	})
+	}, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 	}
