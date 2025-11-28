@@ -9,8 +9,8 @@ import (
 )
 
 type post struct {
-	title       string
-	description string
+	Title string
+	Desc  string
 }
 
 type model struct {
@@ -92,11 +92,11 @@ func (m model) View() string {
 			b.WriteString("  ")
 		}
 
-		b.WriteString(post.title)
+		b.WriteString(post.Title)
 		b.WriteString("\n")
 		b.WriteString(lipgloss.JoinHorizontal(lipgloss.Center,
 			"    ",
-			truncate(post.description, 3),
+			truncate(post.Desc, 3),
 		))
 		b.WriteString("\n\n")
 	}
@@ -114,7 +114,7 @@ func main() {
 		fmt.Printf("Alas, there's been an error: %v", err)
 	}
 	for _, p := range rt {
-		fmt.Println(p.title)
+		fmt.Println(p.Title)
 	}
 }
 
@@ -129,84 +129,84 @@ func truncate(s string, maxLines int) string {
 func generatePosts() []post {
 	return []post{
 		{
-			title:       "Exploring the Alps",
-			description: "A journey through the stunning landscapes of the Swiss Alps, featuring breathtaking views and challenging hikes.\nThis is a very long description that should be truncated.",
+			Title: "Exploring the Alps",
+			Desc:  "A journey through the stunning landscapes of the Swiss Alps, featuring breathtaking views and challenging hikes. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Art of Baking",
-			description: "Learn the secrets behind delicious pastries and breads from a master baker.\nThis post covers everything from sourdough to croissants.\nThis is a very long description that should be truncated.",
+			Title: "The Art of Baking",
+			Desc:  "Learn the secrets behind delicious pastries and breads from a master baker. This post covers everything from sourdough to croissants. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "A Guide to Urban Gardening",
-			description: "Transform your small city space into a green oasis.\nThis guide provides tips on choosing the right plants, containers, and soil for a thriving urban garden.\nThis is a very long description that should be truncated.",
+			Title: "A Guide to Urban Gardening",
+			Desc:  "Transform your small city space into a green oasis. This guide provides tips on choosing the right plants, containers, and soil for a thriving urban garden. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The History of Jazz Music",
-			description: "Discover the roots of jazz, from its origins in New Orleans to its evolution into a global phenomenon.\nThis post explores the key figures and movements that shaped this iconic genre.\nThis is a very long description that should be truncated.",
+			Title: "The History of Jazz Music",
+			Desc:  "Discover the roots of jazz, from its origins in New Orleans to its evolution into a global phenomenon. This post explores the key figures and movements that shaped this iconic genre. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "Mastering the Art of Photography",
-			description: "Whether you're a beginner or a seasoned pro, this post offers valuable insights into composition, lighting, and editing to help you take your photography to the next level.\nThis is a very long description that should be truncated.",
+			Title: "Mastering the Art of Photography",
+			Desc:  "Whether you're a beginner or a seasoned pro, this post offers valuable insights into composition, lighting, and editing to help you take your photography to the next level. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Science of Sleep",
-			description: "Uncover the mysteries of sleep and learn how to improve your sleep quality.\nThis post delves into the different stages of sleep, the importance of circadian rhythms, and practical tips for a better night's rest.\nThis is a very long description that should be truncated.",
+			Title: "The Science of Sleep",
+			Desc:  "Uncover the mysteries of sleep and learn how to improve your sleep quality. This post delves into the different stages of sleep, the importance of circadian rhythms, and practical tips for a better night's rest. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "A Culinary Tour of Italy",
-			description: "Embark on a delicious journey through the diverse culinary regions of Italy.\nFrom the fresh seafood of Sicily to the rich pasta dishes of Bologna, this post is a feast for the senses.\nThis is a very long description that should be truncated.",
+			Title: "A Culinary Tour of Italy",
+			Desc:  "Embark on a delicious journey through the diverse culinary regions of Italy. From the fresh seafood of Sicily to the rich pasta dishes of Bologna, this post is a feast for the senses. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The World of Competitive Gaming",
-			description: "Explore the fast-paced and exciting world of eSports.\nThis post takes a look at the most popular games, the top players, and the massive tournaments that draw millions of fans worldwide.\nThis is a very long description that should be truncated.",
+			Title: "The World of Competitive Gaming",
+			Desc:  "Explore the fast-paced and exciting world of eSports. This post takes a look at the most popular games, the top players, and the massive tournaments that draw millions of fans worldwide. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Secrets of a Successful Startup",
-			description: "Learn from the founders of some of the world's most successful startups.\nThis post shares their stories, strategies, and advice for building a thriving business from the ground up.\nThis is a very long description that should be truncated.",
+			Title: "The Secrets of a Successful Startup",
+			Desc:  "Learn from the founders of some of the world's most successful startups. This post shares their stories, strategies, and advice for building a thriving business from the ground up. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Ultimate Guide to Fitness",
-			description: "Get in the best shape of your life with this comprehensive guide to fitness.\nThis post covers everything from creating a workout plan to proper nutrition and recovery.\nThis is a very long description that should be truncated.",
+			Title: "The Ultimate Guide to Fitness",
+			Desc:  "Get in the best shape of your life with this comprehensive guide to fitness. This post covers everything from creating a workout plan to proper nutrition and recovery. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Beauty of the Night Sky",
-			description: "Discover the wonders of the cosmos with this guide to stargazing.\nLearn how to identify constellations, planets, and other celestial objects with the naked eye or a telescope.\nThis is a very long description that should be truncated.",
+			Title: "The Beauty of the Night Sky",
+			Desc:  "Discover the wonders of the cosmos with this guide to stargazing. Learn how to identify constellations, planets, and other celestial objects with the naked eye or a telescope. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Art of Storytelling",
-			description: "Master the art of storytelling with this guide to crafting compelling narratives.\nThis post covers the essential elements of a good story, from character development to plot structure.\nThis is a very long description that should be truncated.",
+			Title: "The Art of Storytelling",
+			Desc:  "Master the art of storytelling with this guide to crafting compelling narratives. This post covers the essential elements of a good story, from character development to plot structure. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Rise of Artificial Intelligence",
-			description: "Explore the fascinating world of artificial intelligence and its impact on our lives.\nThis post examines the latest advancements in AI, from machine learning to natural language processing.\nThis is a very long description that should be truncated.",
+			Title: "The Rise of Artificial Intelligence",
+			Desc:  "Explore the fascinating world of artificial intelligence and its impact on our lives. This post examines the latest advancements in AI, from machine learning to natural language processing. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Magic of a Good Book",
-			description: "Rediscover the joy of reading with this celebration of the written word.\nThis post explores the power of books to transport us to new worlds, challenge our perspectives, and enrich our lives.\nThis is a very long description that should be truncated.",
+			Title: "The Magic of a Good Book",
+			Desc:  "Rediscover the joy of reading with this celebration of the written word. This post explores the power of books to transport us to new worlds, challenge our perspectives, and enrich our lives. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Thrill of Adventure Travel",
-			description: "Embark on an unforgettable adventure with this guide to thrill-seeking travel.\nFrom bungee jumping in New Zealand to white-water rafting in Costa Rica, this post is your ticket to an adrenaline-fueled journey.\nThis is a very long description that should be truncated.",
+			Title: "The Thrill of Adventure Travel",
+			Desc:  "Embark on an unforgettable adventure with this guide to thrill-seeking travel. From bungee jumping in New Zealand to white-water rafting in Costa Rica, this post is your ticket to an adrenaline-fueled journey. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Power of Positive Thinking",
-			description: "Transform your life with the power of positive thinking.\nThis post explores the science behind optimism and provides practical strategies for cultivating a more positive mindset.\nThis is a very long description that should be truncated.",
+			Title: "The Power of Positive Thinking",
+			Desc:  "Transform your life with the power of positive thinking. This post explores the science behind optimism and provides practical strategies for cultivating a more positive mindset. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The History of the Internet",
-			description: "Journey back in time to the early days of the internet and discover how it evolved into the global network we know today.\nThis post covers the key milestones, technologies, and people that shaped the digital age.\nThis is a very long description that should be truncated.",
+			Title: "The History of the Internet",
+			Desc:  "Journey back in time to the early days of the internet and discover how it evolved into the global network we know today. This post covers the key milestones, technologies, and people that shaped the digital age. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Joy of Cooking for Others",
-			description: "Experience the satisfaction of sharing a home-cooked meal with loved ones.\nThis post offers tips and recipes for hosting a memorable dinner party, from planning the menu to creating a warm and inviting atmosphere.\nThis is a very long description that should be truncated.",
+			Title: "The Joy of Cooking for Others",
+			Desc:  "Experience the satisfaction of sharing a home-cooked meal with loved ones. This post offers tips and recipes for hosting a memorable dinner party, from planning the menu to creating a warm and inviting atmosphere. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Future of Space Exploration",
-			description: "Look to the stars and imagine the future of space exploration.\nThis post examines the latest missions, technologies, and discoveries that are pushing the boundaries of our understanding of the universe.\nThis is a very long description that should be truncated.",
+			Title: "The Future of Space Exploration",
+			Desc:  "Look to the stars and imagine the future of space exploration. This post examines the latest missions, technologies, and discoveries that are pushing the boundaries of our understanding of the universe. This is a very long description that should be truncated.",
 		},
 		{
-			title:       "The Importance of Lifelong Learning",
-			description: "Embrace the pursuit of knowledge with this celebration of lifelong learning.\nThis post explores the benefits of continuous learning, from personal growth to professional development, and provides tips for staying curious and engaged throughout your life.\nThis is a very long description that should be truncated.",
+			Title: "The Importance of Lifelong Learning",
+			Desc:  "Embrace the pursuit of knowledge with this celebration of lifelong learning. This post explores the benefits of continuous learning, from personal growth to professional development, and provides tips for staying curious and engaged throughout your life. This is a very long description that should be truncated.",
 		},
 	}
 }

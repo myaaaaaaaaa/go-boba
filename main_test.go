@@ -19,7 +19,7 @@ func TestApp(t *testing.T) {
 	var output string
 	outputWriter := func(p []post) tea.Model {
 		for _, p := range p {
-			output += p.title
+			output += p.Title
 		}
 		return nil
 	}
