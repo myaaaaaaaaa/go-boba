@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,6 +13,8 @@ type post struct {
 }
 
 type model struct {
+	cb func([]post) tea.Model
+
 	posts          []post
 	selectionStart int
 	selectionEnd   int // inclusive, so a size of 1 means selectionStart == selectionEnd
@@ -33,10 +34,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q", "esc":
-			for i := range m.selectionEnd + 1 {
-				fmt.Println(m.posts[m.selectionStart+i].title)
+			m.selectionEnd = m.selectionStart - 1
+			fallthrough
+		case "space", "enter":
+			if m.cb == nil {
+				return m, tea.Quit
 			}
-			return m, tea.Quit
+			rt := m.cb(m.posts[m.selectionStart : m.selectionEnd+1])
+			if rt == nil {
+				return m, tea.Quit
+			}
+			return rt, nil
 		case "up", "k":
 			if m.selectionStart > 0 {
 				m.selectionStart--
@@ -52,7 +60,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "-":
-			if m.selectionEnd > 0 {
+			if m.selectionEnd > m.selectionStart {
 				m.selectionEnd--
 			}
 		case "=":
@@ -72,7 +80,7 @@ func (m model) View() string {
 
 	for i, post := range visiblePosts {
 		actualIndex := start + i
-		if m.selectionStart <= actualIndex && actualIndex <= m.selectionStart+m.selectionEnd {
+		if m.selectionStart <= actualIndex && actualIndex <= m.selectionEnd {
 			b.WriteString("* ")
 		} else {
 			b.WriteString("  ")
@@ -92,10 +100,16 @@ func (m model) View() string {
 }
 
 func main() {
-	p := tea.NewProgram(model{posts: generatePosts()})
+	var rt []post
+	p := tea.NewProgram(model{
+		posts: generatePosts(),
+		cb:    func(p []post) tea.Model { rt = p; return nil },
+	})
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
-		os.Exit(1)
+	}
+	for _, p := range rt {
+		fmt.Println(p.title)
 	}
 }
 

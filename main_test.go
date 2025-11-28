@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -25,7 +26,12 @@ func TestApp(t *testing.T) {
 		os.Stdout = stdout
 	}()
 
-	m := model{posts: generatePosts()[:5]}
+	m := model{posts: generatePosts()[:5], cb: func(p []post) tea.Model {
+		for _, p := range p {
+			fmt.Println(p.title)
+		}
+		return nil
+	}}
 	tm := teatest.NewTestModel(t, m, teatest.WithInitialTermSize(80, 24))
 
 	// Simulate window size message
@@ -33,18 +39,16 @@ func TestApp(t *testing.T) {
 
 	// Navigate and select some items
 	tm.Send(tea.KeyMsg{Type: tea.KeyDown})
-	tm.Send(tea.KeyMsg{Type: tea.KeyDown})  // cursor at 2
-	tm.Send(tea.KeyMsg{Type: tea.KeySpace}) // selects {2}
+	tm.Send(tea.KeyMsg{Type: tea.KeyDown}) // cursor at 2
 
+	tm.Send(tea.KeyMsg{Type: tea.KeyUp})
+	tm.Send(tea.KeyMsg{Type: tea.KeyUp})
 	tm.Send(tea.KeyMsg{Type: tea.KeyUp})
 	tm.Send(tea.KeyMsg{Type: tea.KeyUp}) // cursor at 0
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{'='}}) // range is now 2
+	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("=")}) // range is now 2
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // selects {0, 1}, now selected is {0, 1, 2}
-
-	// Quit
-	tm.Send(tea.KeyMsg{Type: tea.KeyEscape})
+	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // selects {0, 1}
 
 	// Run the model by calling FinalModel
 	tm.FinalModel(t)
