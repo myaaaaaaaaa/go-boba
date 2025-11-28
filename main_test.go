@@ -17,33 +17,33 @@ func assertEquals(t *testing.T, got any, want any) {
 
 func TestApp(t *testing.T) {
 	var output string
-
-	m := model{posts: generatePosts()[:5], cb: func(p []post) tea.Model {
+	outputWriter := func(p []post) tea.Model {
 		for _, p := range p {
 			output += p.title
 		}
 		return nil
-	}}
-	tm := teatest.NewTestModel(t, m, teatest.WithInitialTermSize(80, 24))
+	}
 
-	// Simulate window size message
-	tm.Send(tea.WindowSizeMsg{Width: 80, Height: 24})
+	tm := teatest.NewTestModel(t, model{
+		posts: generatePosts()[:5],
+		cb:    outputWriter,
+	})
+
+	tm.Send(tea.WindowSizeMsg{Width: 40, Height: 24})
 
 	// Navigate and select some items
 	tm.Send(tea.KeyMsg{Type: tea.KeyDown})
 	tm.Send(tea.KeyMsg{Type: tea.KeyDown}) // cursor at 2
-
-	tm.Send(tea.KeyMsg{Type: tea.KeyUp})
-	tm.Send(tea.KeyMsg{Type: tea.KeyUp})
 	tm.Send(tea.KeyMsg{Type: tea.KeyUp})
 	tm.Send(tea.KeyMsg{Type: tea.KeyUp}) // cursor at 0
+	tm.Send(tea.KeyMsg{Type: tea.KeyUp})
+	tm.Send(tea.KeyMsg{Type: tea.KeyUp})
 
 	tm.Type("---=") // range is now 2
 
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // selects {0, 1}
 
-	// Run the model by calling FinalModel
 	tm.FinalModel(t)
 
-	assertEquals(t, `Exploring the AlpsThe Art of Baking`, output)
+	assertEquals(t, output, `Exploring the AlpsThe Art of Baking`)
 }
