@@ -36,10 +36,8 @@ vhs demo.tape
 
 ## Testing and Linting
 
-To ensure code quality, run the following commands after any successful `go test`s:
+To ensure code quality, run this custom script after any successful `go test`s:
 
 ```bash
-go fmt .
-go mod tidy
-go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix -test ./...
+./golint.sh
 ```
