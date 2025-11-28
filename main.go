@@ -49,29 +49,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			}
 			return rt, nil
+
 		case "up", "k":
-			if m.selectionStart > 0 {
-				m.selectionStart--
-			}
+			m.selectionStart--
 		case "down", "j":
-			if m.selectionStart < len(m.posts)-1 {
-				m.selectionStart++
-			}
+			m.selectionStart++
 		case "-":
-			if m.selectionSize > 0 {
-				m.selectionSize--
-			}
+			m.selectionSize--
 		case "=":
 			m.selectionSize++
 		}
 	}
+
+	m.selectionStart = max(m.selectionStart, 0)
+	m.selectionSize = max(m.selectionSize, 0)
+
+	m.selectionStart = min(m.selectionStart, len(m.posts)-1)
+	m.selectionSize = min(m.selectionSize, len(m.posts)-m.selectionStart-1)
+
 	return m, nil
 }
 
 func (m model) View() string {
 	var b strings.Builder
 
-	// Scroll indicator
 	{
 		scrollIndicator := fmt.Sprintf("━━━━ %2d/%d ━━━━", m.selectionStart+1, len(m.posts))
 		scrollIndicator = lipgloss.Style{}.
@@ -93,7 +94,7 @@ func (m model) View() string {
 
 		selection := "  "
 		if m.selectionStart <= actualIndex && actualIndex <= m.selectionStart+m.selectionSize {
-			selection = " ┃"
+			selection = "┃ "
 		}
 
 		width := m.size.Width - 4
@@ -102,7 +103,7 @@ func (m model) View() string {
 			lipgloss.Style{}.
 				Foreground(lipgloss.Color("#808080")).
 				Width(width).    // pad to width.
-				Height(4).       // pad to height.
+				Height(3).       // pad to height.
 				MaxWidth(width). // truncate width if wider.
 				MaxHeight(3).    // truncate height if taller.
 				Render(post.Desc),
