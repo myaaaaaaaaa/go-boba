@@ -3,8 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io"
-	"os"
 	"strings"
 	"testing"
 
@@ -13,22 +11,11 @@ import (
 )
 
 func TestApp(t *testing.T) {
-	// a pipe redirects stdout to a buffer
-	r, w, err := os.Pipe()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// save original stdout and redirect it
-	stdout := os.Stdout
-	os.Stdout = w
-	defer func() {
-		os.Stdout = stdout
-	}()
+	var buf bytes.Buffer
 
 	m := model{posts: generatePosts()[:5], cb: func(p []post) tea.Model {
 		for _, p := range p {
-			fmt.Println(p.title)
+			fmt.Fprintln(&buf, p.title)
 		}
 		return nil
 	}}
@@ -52,14 +39,6 @@ func TestApp(t *testing.T) {
 
 	// Run the model by calling FinalModel
 	tm.FinalModel(t)
-
-	// close the writer and read the buffer
-	w.Close()
-	var buf bytes.Buffer
-	_, err = io.Copy(&buf, r)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
 
