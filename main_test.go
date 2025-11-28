@@ -25,7 +25,7 @@ func TestApp(t *testing.T) {
 		os.Stdout = stdout
 	}()
 
-	m := newModel()
+	m := model{posts: generatePosts()[:5]}
 	tm := teatest.NewTestModel(t, m, teatest.WithInitialTermSize(80, 24))
 
 	// Simulate window size message

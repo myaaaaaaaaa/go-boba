@@ -21,12 +21,6 @@ type model struct {
 	viewportOffset int
 }
 
-func newModel() model {
-	return model{
-		posts: generatePosts(),
-	}
-}
-
 func (m model) Init() tea.Cmd {
 	return nil
 }
@@ -98,7 +92,7 @@ func (m model) View() string {
 }
 
 func main() {
-	p := tea.NewProgram(newModel())
+	p := tea.NewProgram(model{posts: generatePosts()})
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
