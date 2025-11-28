@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"os"
-	"sort"
 	"strings"
 	"testing"
 
@@ -58,16 +57,12 @@ func TestApp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// The output from fmt.Println will have trailing newlines, and map iteration order is not guaranteed.
 	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
-	sort.Strings(lines)
 
 	expectedLines := []string{
-		"Exploring the Alps",         // index 0
-		"The Art of Baking",          // index 1
-		"A Guide to Urban Gardening", // index 2
+		"Exploring the Alps", // index 0
+		"The Art of Baking",  // index 1
 	}
-	sort.Strings(expectedLines)
 
 	expected := strings.Join(expectedLines, "\n")
 	actual := strings.Join(lines, "\n")

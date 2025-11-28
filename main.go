@@ -17,7 +17,6 @@ type model struct {
 	posts          []post
 	cursor         int
 	selectionRange int
-	selected       map[int]struct{}
 	height         int
 	viewportOffset int
 }
@@ -26,7 +25,6 @@ func newModel() model {
 	return model{
 		posts:          generatePosts(),
 		selectionRange: 1,
-		selected:       make(map[int]struct{}),
 	}
 }
 
@@ -42,9 +40,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q", "esc":
-			// Print selected items to stdout before quitting.
-			for i := range m.selected {
-				fmt.Println(m.posts[i].title)
+			for i := range m.selectionRange {
+				fmt.Println(m.posts[m.cursor+i].title)
 			}
 			return m, tea.Quit
 		case "up", "k":
@@ -59,17 +56,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor++
 				if m.cursor >= m.viewportOffset+m.height/4 {
 					m.viewportOffset = m.cursor - m.height/4 + 1
-				}
-			}
-		case "enter", " ":
-			for i := 0; i < m.selectionRange; i++ {
-				if m.cursor+i < len(m.posts) {
-					_, ok := m.selected[m.cursor+i]
-					if ok {
-						delete(m.selected, m.cursor+i)
-					} else {
-						m.selected[m.cursor+i] = struct{}{}
-					}
 				}
 			}
 		case "-":
@@ -94,16 +80,9 @@ func (m model) View() string {
 	for i, post := range visiblePosts {
 		actualIndex := start + i
 		if m.cursor <= actualIndex && actualIndex < m.cursor+m.selectionRange {
-			b.WriteString("(>) ")
+			b.WriteString("* ")
 		} else {
-			b.WriteString("( ) ")
-		}
-
-		_, ok := m.selected[actualIndex]
-		if ok {
-			b.WriteString("[x] ")
-		} else {
-			b.WriteString("[ ] ")
+			b.WriteString("  ")
 		}
 
 		b.WriteString(post.title)
