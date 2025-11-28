@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -77,7 +79,7 @@ func (m model) View() string {
 	var b strings.Builder
 
 	// Scroll indicator
-	b.WriteString(fmt.Sprintf("\n---\n%d/%d", m.selectionStart+1, len(m.posts)))
+	b.WriteString(fmt.Sprintf("%d/%d\n---\n\n", m.selectionStart+1, len(m.posts)))
 
 	// Determine the slice of posts to render
 	start := m.viewportOffset
@@ -86,19 +88,30 @@ func (m model) View() string {
 
 	for i, post := range visiblePosts {
 		actualIndex := start + i
+		selection := "  "
 		if m.selectionStart <= actualIndex && actualIndex <= m.selectionStart+m.selectionSize {
-			b.WriteString("* ")
-		} else {
-			b.WriteString("  ")
+			selection = " ▌"
 		}
 
-		b.WriteString(post.Title)
-		b.WriteString("\n")
-		b.WriteString(lipgloss.JoinHorizontal(lipgloss.Center,
-			"    ",
-			truncate(post.Desc, 3),
-		))
-		b.WriteString("\n\n")
+		const WIDTH = 40
+		item := lipgloss.JoinHorizontal(lipgloss.Center,
+			"  ",
+			lipgloss.Style{}.
+				Width(WIDTH).    // pad to width.
+				Height(4).       // pad to height.
+				MaxWidth(WIDTH). // truncate width if wider.
+				MaxHeight(3).    // truncate height if taller.
+				Render(post.Desc),
+		)
+		item = lipgloss.JoinVertical(lipgloss.Left,
+			post.Title,
+			item,
+		)
+		item = lipgloss.JoinHorizontal(lipgloss.Top,
+			strings.Repeat("\n"+selection, 5)[1:],
+			item,
+		)
+		b.WriteString(item + "\n")
 	}
 
 	return b.String()
@@ -114,16 +127,10 @@ func main() {
 		fmt.Printf("Alas, there's been an error: %v", err)
 	}
 	for _, p := range rt {
-		fmt.Println(p.Title)
+		b, _ := json.MarshalIndent(p, "", "\t")
+		b = append(b, '\n')
+		os.Stdout.Write(b)
 	}
-}
-
-func truncate(s string, maxLines int) string {
-	lines := strings.Split(s, "\n")
-	if len(lines) > maxLines {
-		return strings.Join(lines[:maxLines], "\n") + "..."
-	}
-	return s
 }
 
 func generatePosts() []post {
