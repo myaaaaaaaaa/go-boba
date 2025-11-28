@@ -15,16 +15,15 @@ type post struct {
 
 type model struct {
 	posts          []post
-	cursor         int
-	selectionRange int
+	selectionStart int
+	selectionEnd   int // inclusive, so a size of 1 means selectionStart == selectionEnd
 	height         int
 	viewportOffset int
 }
 
 func newModel() model {
 	return model{
-		posts:          generatePosts(),
-		selectionRange: 1,
+		posts: generatePosts(),
 	}
 }
 
@@ -40,30 +39,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q", "esc":
-			for i := range m.selectionRange {
-				fmt.Println(m.posts[m.cursor+i].title)
+			for i := range m.selectionEnd + 1 {
+				fmt.Println(m.posts[m.selectionStart+i].title)
 			}
 			return m, tea.Quit
 		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-				if m.cursor < m.viewportOffset {
-					m.viewportOffset = m.cursor
+			if m.selectionStart > 0 {
+				m.selectionStart--
+				if m.selectionStart < m.viewportOffset {
+					m.viewportOffset = m.selectionStart
 				}
 			}
 		case "down", "j":
-			if m.cursor < len(m.posts)-1 {
-				m.cursor++
-				if m.cursor >= m.viewportOffset+m.height/4 {
-					m.viewportOffset = m.cursor - m.height/4 + 1
+			if m.selectionStart < len(m.posts)-1 {
+				m.selectionStart++
+				if m.selectionStart >= m.viewportOffset+m.height/4 {
+					m.viewportOffset = m.selectionStart - m.height/4 + 1
 				}
 			}
 		case "-":
-			if m.selectionRange > 1 {
-				m.selectionRange--
+			if m.selectionEnd > 0 {
+				m.selectionEnd--
 			}
 		case "=":
-			m.selectionRange++
+			m.selectionEnd++
 		}
 	}
 	return m, nil
@@ -79,7 +78,7 @@ func (m model) View() string {
 
 	for i, post := range visiblePosts {
 		actualIndex := start + i
-		if m.cursor <= actualIndex && actualIndex < m.cursor+m.selectionRange {
+		if m.selectionStart <= actualIndex && actualIndex <= m.selectionStart+m.selectionEnd {
 			b.WriteString("* ")
 		} else {
 			b.WriteString("  ")
@@ -93,7 +92,7 @@ func (m model) View() string {
 	}
 
 	// Add a scroll indicator
-	b.WriteString(fmt.Sprintf("\n---\n%d/%d", m.cursor+1, len(m.posts)))
+	b.WriteString(fmt.Sprintf("\n---\n%d/%d", m.selectionStart+1, len(m.posts)))
 
 	return b.String()
 }
