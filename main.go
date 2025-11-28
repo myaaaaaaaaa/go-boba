@@ -23,7 +23,7 @@ type model struct {
 	selectionStart int
 	selectionSize  int // actually size-1, this way the zero value (0) is ready to use.
 
-	height         int
+	size           tea.WindowSizeMsg
 	viewportOffset int
 }
 
@@ -34,7 +34,7 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.height = msg.Height
+		m.size = msg
 		return m, nil
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -60,8 +60,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down", "j":
 			if m.selectionStart < len(m.posts)-1 {
 				m.selectionStart++
-				if m.selectionStart >= m.viewportOffset+m.height/4 {
-					m.viewportOffset = m.selectionStart - m.height/4 + 1
+				if m.selectionStart >= m.viewportOffset+m.size.Height/4 {
+					m.viewportOffset = m.selectionStart - m.size.Height/4 + 1
 				}
 			}
 		case "-":
@@ -83,7 +83,7 @@ func (m model) View() string {
 
 	// Determine the slice of posts to render
 	start := m.viewportOffset
-	end := min(m.viewportOffset+m.height/4, len(m.posts))
+	end := min(m.viewportOffset+m.size.Height/4, len(m.posts))
 	visiblePosts := m.posts[start:end]
 
 	for i, post := range visiblePosts {
@@ -93,22 +93,27 @@ func (m model) View() string {
 			selection = " ▌"
 		}
 
-		const WIDTH = 40
+		width := m.size.Width - 4
 		item := lipgloss.JoinHorizontal(lipgloss.Center,
-			"  ",
+			"",
 			lipgloss.Style{}.
-				Width(WIDTH).    // pad to width.
+				Foreground(lipgloss.Color("#808080")).
+				Width(width).    // pad to width.
 				Height(4).       // pad to height.
-				MaxWidth(WIDTH). // truncate width if wider.
+				MaxWidth(width). // truncate width if wider.
 				MaxHeight(3).    // truncate height if taller.
 				Render(post.Desc),
 		)
 		item = lipgloss.JoinVertical(lipgloss.Left,
-			post.Title,
+			lipgloss.Style{}.
+				Bold(true).
+				Render(post.Title),
 			item,
 		)
 		item = lipgloss.JoinHorizontal(lipgloss.Top,
-			strings.Repeat("\n"+selection, 5)[1:],
+			lipgloss.Style{}.
+				Foreground(lipgloss.Color("#c0c0c0")).
+				Render(strings.Repeat("\n"+selection, 5)[1:]),
 			item,
 		)
 		b.WriteString(item + "\n")
