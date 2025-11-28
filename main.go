@@ -15,9 +15,11 @@ type post struct {
 type model struct {
 	cb func([]post) tea.Model
 
-	posts          []post
+	posts []post
+
 	selectionStart int
-	selectionEnd   int // inclusive, so a size of 1 means selectionStart == selectionEnd
+	selectionSize  int // actually size-1, this way the zero value (0) is ready to use.
+
 	height         int
 	viewportOffset int
 }
@@ -34,13 +36,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q", "esc":
-			m.selectionEnd = m.selectionStart - 1
+			m.selectionSize = -1
 			fallthrough
 		case "space", "enter":
 			if m.cb == nil {
 				return m, tea.Quit
 			}
-			rt := m.cb(m.posts[m.selectionStart : m.selectionEnd+1])
+			rt := m.cb(m.posts[m.selectionStart : m.selectionStart+m.selectionSize+1])
 			if rt == nil {
 				return m, tea.Quit
 			}
@@ -60,11 +62,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "-":
-			if m.selectionEnd > m.selectionStart {
-				m.selectionEnd--
+			if m.selectionSize > 0 {
+				m.selectionSize--
 			}
 		case "=":
-			m.selectionEnd++
+			m.selectionSize++
 		}
 	}
 	return m, nil
@@ -80,7 +82,7 @@ func (m model) View() string {
 
 	for i, post := range visiblePosts {
 		actualIndex := start + i
-		if m.selectionStart <= actualIndex && actualIndex <= m.selectionEnd {
+		if m.selectionStart <= actualIndex && actualIndex <= m.selectionStart+m.selectionSize {
 			b.WriteString("* ")
 		} else {
 			b.WriteString("  ")

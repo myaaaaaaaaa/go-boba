@@ -33,7 +33,7 @@ func TestApp(t *testing.T) {
 	tm.Send(tea.KeyMsg{Type: tea.KeyUp})
 	tm.Send(tea.KeyMsg{Type: tea.KeyUp}) // cursor at 0
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("=")}) // range is now 2
+	tm.Type("---=") // range is now 2
 
 	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // selects {0, 1}
 
