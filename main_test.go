@@ -1,21 +1,26 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
 )
 
+func assertEquals(t *testing.T, got any, want any) {
+	t.Helper()
+	if fmt.Sprint(got) != fmt.Sprint(want) {
+		t.Error("got", got, "    want", want)
+	}
+}
+
 func TestApp(t *testing.T) {
-	var buf bytes.Buffer
+	var output string
 
 	m := model{posts: generatePosts()[:5], cb: func(p []post) tea.Model {
 		for _, p := range p {
-			fmt.Fprintln(&buf, p.title)
+			output += p.title
 		}
 		return nil
 	}}
@@ -40,17 +45,5 @@ func TestApp(t *testing.T) {
 	// Run the model by calling FinalModel
 	tm.FinalModel(t)
 
-	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
-
-	expectedLines := []string{
-		"Exploring the Alps", // index 0
-		"The Art of Baking",  // index 1
-	}
-
-	expected := strings.Join(expectedLines, "\n")
-	actual := strings.Join(lines, "\n")
-
-	if actual != expected {
-		t.Errorf("expected output:\n\n%q\n\ngot:\n\n%q", expected, actual)
-	}
+	assertEquals(t, `Exploring the AlpsThe Art of Baking`, output)
 }
