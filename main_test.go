@@ -34,7 +34,7 @@ func TestApp(t *testing.T) {
 
 	// Navigate and select some items
 	tm.Send(tea.KeyMsg{Type: tea.KeyDown})
-	tm.Send(tea.KeyMsg{Type: tea.KeyDown}) // cursor at 2
+	tm.Send(tea.KeyMsg{Type: tea.KeyDown})  // cursor at 2
 	tm.Send(tea.KeyMsg{Type: tea.KeySpace}) // selects {2}
 
 	tm.Send(tea.KeyMsg{Type: tea.KeyUp})

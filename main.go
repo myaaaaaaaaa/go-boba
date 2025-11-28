@@ -88,10 +88,7 @@ func (m model) View() string {
 
 	// Determine the slice of posts to render
 	start := m.viewportOffset
-	end := m.viewportOffset + m.height/4
-	if end > len(m.posts) {
-		end = len(m.posts)
-	}
+	end := min(m.viewportOffset+m.height/4, len(m.posts))
 	visiblePosts := m.posts[start:end]
 
 	for i, post := range visiblePosts {

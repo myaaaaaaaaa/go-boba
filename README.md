@@ -34,3 +34,12 @@ Once `vhs` is installed, you can generate the demo by running:
 vhs demo.tape
 ```
 
+## Testing and Linting
+
+To ensure code quality, run the following commands after any successful `go test`s:
+
+```bash
+go fmt .
+go mod tidy
+go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix -test ./...
+```
