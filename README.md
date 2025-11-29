@@ -25,3 +25,9 @@ To ensure code quality, run this custom script after any successful `go test`s:
 ```bash
 ./golint.sh
 ```
+
+## Demos
+
+#### demo.gif
+![demo](demo.gif)
+
