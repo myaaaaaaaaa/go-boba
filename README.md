@@ -28,10 +28,10 @@ To run the demo, you'll need to have `vhs` installed.
 
 ### Generating the Demo
 
-Once `vhs` is installed, you can generate the demo by running:
+You can generate the demo by running:
 
 ```bash
-vhs demo.tape
+./vhs.sh demo.tape
 ```
 
 ## Testing and Linting
