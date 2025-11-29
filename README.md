@@ -14,7 +14,7 @@ Upon confirmation, the selected items are printed to standard output as a JSON a
 
 ## Updating
 
-To update all Go dependencies, run this script:
+To update all Go dependencies, run this custom script:
 
 ```bash
 ./goupdate.sh
@@ -22,12 +22,11 @@ To update all Go dependencies, run this script:
 
 ## Testing and Linting
 
-To ensure code quality, run this custom script after any successful `go test`s:
+The `golint.sh` script handles linting, formatting, and regeneration of assets. Run this after a successful `go test`, or after editing any `.tape` files.
 
 ```bash
 ./golint.sh
 ```
-
 
 <!-- Everything below this line is auto-generated. Manual changes will be clobbered. DO NOT EDIT. -->
 ## Demos
