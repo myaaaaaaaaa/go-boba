@@ -12,6 +12,14 @@ This application is a terminal-based UI that allows users to select one or more 
 
 Upon confirmation, the selected items are printed to standard output as a JSON array. This allows the output to be piped to other command-line tools.
 
+## Updating
+
+To update all Go dependencies, run this script:
+
+```bash
+./goupdate.sh
+```
+
 ## Testing and Linting
 
 To ensure code quality, run this custom script after any successful `go test`s:
