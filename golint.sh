@@ -2,7 +2,7 @@
 
 go fmt .
 go mod tidy
-# go tool modernize -fix -test ./...
+go tool modernize -fix -test ./...
 
 for tape in *.tape; do
 	go tool vhs "$tape"
