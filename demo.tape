@@ -1,5 +1,5 @@
 Output "demo.gif"
-Set FontSize 18
+Set FontSize 15
 Set CursorBlink false
 Set Width 600
 Set Height 400
@@ -7,7 +7,6 @@ Set Padding 30
 Set TypingSpeed 100ms
 Set Framerate 10
 Set Theme "Github"
-Set WindowBar Rings
 
 Type "go run ."
 Sleep 1s
