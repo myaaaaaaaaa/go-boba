@@ -2,10 +2,10 @@
 
 go fmt .
 go mod tidy
-go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix -test ./...
+go tool modernize -fix -test ./...
 
 for tape in *.tape; do
-	go run github.com/charmbracelet/vhs@latest "$tape"
+	go tool vhs "$tape"
 done
 
 go run ./regen/
