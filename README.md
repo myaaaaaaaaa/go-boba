@@ -10,8 +10,10 @@ To ensure code quality, run this custom script after any successful `go test`s:
 ./golint.sh
 ```
 
+
+<!-- DO NOT EDIT BELOW THIS LINE -->
 ## Demos
 
 #### demo.gif
-![demo](demo.gif)
+![demo.gif](demo.gif)
 

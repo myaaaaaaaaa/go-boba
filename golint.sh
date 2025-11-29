@@ -8,3 +8,5 @@ for tape in *.tape; do
 	go run github.com/charmbracelet/vhs@latest "$tape"
 done
 
+go run ./regen/
+
