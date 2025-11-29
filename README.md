@@ -4,35 +4,19 @@ This project contains a Go Bubble Tea application and a `vhs` demo.
 
 ## Running the Demo
 
-To run the demo, you'll need to have `vhs` installed.
+If you would like to run the demo, you'll need to install dependencies first.
 
-### `vhs` Installation
-
-1.  **Install `ttyd` and `ffmpeg`:**
+1.  **Install Dependencies:**
 
     ```bash
     sudo apt-get update && sudo apt-get install -y ttyd ffmpeg
     ```
 
-2.  **Install `vhs`:**
+2.  **Generating the Demo:**
 
     ```bash
-    go install github.com/charmbracelet/vhs@latest
+    ./vhs.sh demo.tape
     ```
-
-3.  **Add `go/bin` to your `PATH`:**
-
-    ```bash
-    export PATH=$PATH:~/go/bin
-    ```
-
-### Generating the Demo
-
-You can generate the demo by running:
-
-```bash
-./vhs.sh demo.tape
-```
 
 ## Testing and Linting
 
