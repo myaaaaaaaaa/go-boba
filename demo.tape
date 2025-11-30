@@ -6,7 +6,7 @@ Set Height 400
 Set Padding 30
 Set TypingSpeed 100ms
 Set Framerate 10
-Set Theme "Github"
+Set Theme "Terminal Basic"
 
 Type "go run ."
 Sleep 1s
