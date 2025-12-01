@@ -1,4 +1,4 @@
-package escapes
+package main
 
 import (
 	"io"
