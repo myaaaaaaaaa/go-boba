@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bytes"
+	"crypto/sha256"
 	"fmt"
+	"io"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/x/exp/teatest"
+	"github.com/charmbracelet/x/ansi"
 )
 
 func assertEquals(t *testing.T, got any, want any) {
@@ -13,6 +16,38 @@ func assertEquals(t *testing.T, got any, want any) {
 	if fmt.Sprint(got) != fmt.Sprint(want) {
 		t.Error("got", got, "    want", want)
 	}
+}
+
+type send func(tea.Msg) string
+
+func (send send) key(t tea.KeyType, repeat int) (rt string) {
+	for range repeat {
+		rt = send(tea.KeyMsg{Type: t})
+	}
+	return
+}
+func (send send) text(s string) (rt string) {
+	for _, r := range s {
+		rt = send(tea.KeyMsg{
+			Type:  tea.KeyRunes,
+			Runes: []rune{r},
+		})
+	}
+	return
+}
+
+func teaTester(m tea.Model, out io.Writer) send {
+	return func(msg tea.Msg) string {
+		m, _ = m.Update(msg)
+		rt := ansi.Strip(m.View())
+		out.Write([]byte(rt))
+		return rt
+	}
+}
+
+func hash(data []byte) string {
+	rt := sha256.Sum256(data)
+	return fmt.Sprintf("sha256:%x", rt)
 }
 
 func TestApp(t *testing.T) {
@@ -24,32 +59,34 @@ func TestApp(t *testing.T) {
 		return nil
 	}
 
-	tm := teatest.NewTestModel(t, model{
+	var frames bytes.Buffer
+	send := teaTester(model{
 		posts: generatePosts()[:5:5],
 		cb:    outputWriter,
-	})
+	}, &frames)
 
-	tm.Send(tea.WindowSizeMsg{Width: 40, Height: 24})
+	send(tea.WindowSizeMsg{Width: 40, Height: 24})
 
-	// Try to go beyond end of list
-	for range 10 {
-		tm.Send(tea.KeyMsg{Type: tea.KeyDown})
+	{
+		// Try to go beyond end of list
+		want := send.key(tea.KeyDown, 10)
+		// Try to grow selection, fails
+		got := send.text("=====")
+		assertEquals(t, got, want)
 	}
-
-	tm.Type("=====")
 
 	// Try to go beyond beginning of list
-	for range 15 {
-		tm.Send(tea.KeyMsg{Type: tea.KeyUp})
-	}
+	send.key(tea.KeyUp, 15)
 
 	// Try to shrink selection size below 1, then grow it to 2
-	tm.Type("------=")
+	send.text("------=")
 
-	tm.Send(tea.KeyMsg{Type: tea.KeyDown})
-	tm.Send(tea.KeyMsg{Type: tea.KeyEnter}) // selects {1, 2}
+	send.key(tea.KeyDown, 1)
+	assertEquals(t, output, "")
 
-	tm.FinalModel(t)
-
+	send.key(tea.KeyEnter, 1) // selects {1, 2}
 	assertEquals(t, output, `The Art of BakingA Guide to Urban Gardening`)
+
+	// Regression smoke test. Update the checksum if visual change were intentional.
+	assertEquals(t, hash(frames.Bytes()), "sha256:6bf5c180ac620fa05ba274944b51a8071eaf051b4c10ad070d7825e84bc63de3")
 }
