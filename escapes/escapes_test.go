@@ -17,7 +17,7 @@ func TestFindEscapes_Unit(t *testing.T) {
 		{
 			name:     "empty string",
 			input:    "",
-			expected: []string{""},
+			expected: nil,
 		},
 		{
 			name:     "single newline",
@@ -78,13 +78,7 @@ func (r *randRead) Read(p []byte) (n int, err error) {
 		return 0, io.EOF
 	}
 	// Simulate random read sizes.
-	readSize := r.rand.Intn(8) + 1
-	if readSize > len(p) {
-		readSize = len(p)
-	}
-	if readSize > len(r.s) {
-		readSize = len(r.s)
-	}
+	readSize := min(r.rand.Intn(8)+1, len(p), len(r.s))
 	n = copy(p, r.s[:readSize])
 	r.s = r.s[readSize:]
 	return n, nil
@@ -95,7 +89,7 @@ func (r *randRead) Read(p []byte) (n int, err error) {
 func generateRandomString(length int, r *rand.Rand) string {
 	chars := []byte{'\x1b', '\n', ' ', 'a'}
 	var result []byte
-	for i := 0; i < length; i++ {
+	for range length {
 		result = append(result, chars[r.Intn(len(chars))])
 	}
 	return string(result)
@@ -103,9 +97,6 @@ func generateRandomString(length int, r *rand.Rand) string {
 
 // referenceSplitBefore is a simple, non-streaming implementation for testing.
 func referenceSplitBefore(s string) []string {
-	if s == "" {
-		return []string{""}
-	}
 	var result []string
 	var current strings.Builder
 	for _, r := range s {
@@ -122,7 +113,7 @@ func referenceSplitBefore(s string) []string {
 
 func TestFindEscapes_Properties(t *testing.T) {
 	r := rand.New(rand.NewSource(1))
-	for i := 0; i < 10000; i++ {
+	for i := range 10000 {
 		origString := generateRandomString(100, r)
 		reader := &randRead{s: origString, rand: r}
 		result := FindEscapes(reader)
@@ -141,7 +132,7 @@ func TestFindEscapes_Properties(t *testing.T) {
 
 func TestFindEscapes_Properties_Structure(t *testing.T) {
 	r := rand.New(rand.NewSource(2)) // Use a different fixed seed
-	for i := 0; i < 10000; i++ {
+	for i := range 10000 {
 		origString := generateRandomString(100, r)
 		reader := &randRead{s: origString, rand: r}
 		result := FindEscapes(reader)

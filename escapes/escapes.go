@@ -32,10 +32,6 @@ func FindEscapes(r io.Reader) []string {
 		}
 	}
 
-	if len(result) == 0 && current.Len() == 0 {
-		return []string{""}
-	}
-
 	// Add the last part.
 	if current.Len() > 0 {
 		result = append(result, current.String())
