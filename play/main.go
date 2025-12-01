@@ -13,13 +13,16 @@ import (
 var help string
 
 func main() {
-	var n, c, e time.Duration
-	flag.DurationVar(&n, "n", 0, "newline sleep")
-	flag.DurationVar(&c, "c", 100*time.Millisecond, "clear sleep")
-	flag.DurationVar(&e, "e", 1*time.Second, "ending sleep")
+	type flags struct {
+		n, c, e time.Duration
+	}
+	var f flags
+	flag.DurationVar(&f.n, "n", 0, "newline sleep")
+	flag.DurationVar(&f.c, "c", 0, "clear sleep")
+	flag.DurationVar(&f.e, "e", 0, "ending sleep")
 	flag.Parse()
 
-	if n == 0 && c == 0 && e == 0 {
+	if (f == flags{}) {
 		fmt.Fprintf(os.Stderr, "Usage: %s [flags] [file]\n", os.Args[0])
 		fmt.Fprint(os.Stderr, help)
 		flag.PrintDefaults()
@@ -38,13 +41,13 @@ func main() {
 
 		switch s[0] {
 		case '\n':
-			time.Sleep(n)
+			time.Sleep(f.n)
 		case '\x1b':
 			if isClear(s) {
-				time.Sleep(c)
+				time.Sleep(f.c)
 			}
 		}
 		os.Stdout.Write([]byte(s))
 	}
-	time.Sleep(e)
+	time.Sleep(f.e)
 }
