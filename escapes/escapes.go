@@ -13,42 +13,32 @@ import (
 func FindEscapes(r io.Reader) []string {
 	var result []string
 	var current bytes.Buffer
-	buf := make([]byte, 64)
+	var buf [1024]byte
 
 	for {
-		n, err := r.Read(buf)
+		n, err := r.Read(buf[:])
+		buf := buf[:n]
 
-		if n > 0 {
-			chunk := buf[:n]
-			for _, b := range chunk {
-				isDelimiter := b == '\n' || b == '\x1b'
-				if isDelimiter {
-					result = append(result, current.String())
-					current.Reset()
-				}
-				current.WriteByte(b)
-			}
-		}
-
-		if err == io.EOF {
-			// If the input is empty, we should return a slice with an empty string,
-			// similar to strings.Split("", ",").
-			if len(result) == 0 && current.Len() == 0 {
-				return []string{""}
-			}
-			// Add the last part.
-			if current.Len() > 0 {
+		for _, b := range buf {
+			isDelimiter := b == '\n' || b == '\x1b'
+			if isDelimiter {
 				result = append(result, current.String())
+				current.Reset()
 			}
-			break
+			current.WriteByte(b)
 		}
 		if err != nil {
-			// Some other error. Add what we have and return.
-			if current.Len() > 0 {
-				result = append(result, current.String())
-			}
 			break
 		}
+	}
+
+	if len(result) == 0 && current.Len() == 0 {
+		return []string{""}
+	}
+
+	// Add the last part.
+	if current.Len() > 0 {
+		result = append(result, current.String())
 	}
 	return result
 }
