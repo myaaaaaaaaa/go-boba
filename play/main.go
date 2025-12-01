@@ -9,26 +9,11 @@ import (
 )
 
 func main() {
-	newlineSleep := flag.String("n", "0s", "newline sleep")
-	clearSleep := flag.String("c", "100ms", "clear sleep")
-	endingSleep := flag.String("e", "1s", "ending sleep")
+	var n, c, e time.Duration
+	flag.DurationVar(&n, "n", 0, "newline sleep")
+	flag.DurationVar(&c, "c", 100*time.Millisecond, "clear sleep")
+	flag.DurationVar(&e, "e", 1*time.Second, "ending sleep")
 	flag.Parse()
-
-	n, err := time.ParseDuration(*newlineSleep)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "invalid newline sleep duration: %v\n", err)
-		os.Exit(1)
-	}
-	c, err := time.ParseDuration(*clearSleep)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "invalid clear sleep duration: %v\n", err)
-		os.Exit(1)
-	}
-	e, err := time.ParseDuration(*endingSleep)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "invalid ending sleep duration: %v\n", err)
-		os.Exit(1)
-	}
 
 	if n == 0 && c == 0 && e == 0 {
 		fmt.Fprintf(os.Stderr, "Usage: %s [flags] [file]\n", os.Args[0])
