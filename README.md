@@ -22,15 +22,8 @@ To update all Go dependencies, run this custom script:
 
 ## Testing and Linting
 
-The `golint.sh` script handles linting, formatting, and regeneration of assets. Run this after a successful `go test`, or after editing any `.tape` files.
+The `golint.sh` script handles linting and formatting. Run it after a successful `go test`.
 
 ```bash
 ./golint.sh
 ```
-
-<!-- Everything below this line is auto-generated. Manual changes will be clobbered. DO NOT EDIT. -->
-## Demos
-
-#### demo.gif
-![demo.gif](demo.gif)
-
