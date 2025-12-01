@@ -7,7 +7,7 @@ toolchain go1.24.3
 require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
-	github.com/charmbracelet/x/exp/teatest v0.0.0-20251126160633-0b68cdcd21da
+	github.com/charmbracelet/x/ansi v0.10.1
 )
 
 require (
@@ -26,11 +26,9 @@ require (
 	github.com/charmbracelet/ssh v0.0.0-20250128164007-98fd5ae11894 // indirect
 	github.com/charmbracelet/vhs v0.10.0 // indirect
 	github.com/charmbracelet/wish v1.4.7 // indirect
-	github.com/charmbracelet/x/ansi v0.10.1 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
 	github.com/charmbracelet/x/conpty v0.1.0 // indirect
 	github.com/charmbracelet/x/errors v0.0.0-20240904165849-e8e43e13f84b // indirect
-	github.com/charmbracelet/x/exp/golden v0.0.0-20240815200342-61de596daa2b // indirect
 	github.com/charmbracelet/x/exp/slice v0.0.0-20250327172914-2fdc97757edf // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/charmbracelet/x/termios v0.1.0 // indirect
