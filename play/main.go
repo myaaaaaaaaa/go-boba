@@ -1,12 +1,16 @@
 package main
 
 import (
+	_ "embed"
 	"flag"
 	"fmt"
 	"os"
 	"regexp"
 	"time"
 )
+
+//go:embed help.txt
+var help string
 
 func main() {
 	var n, c, e time.Duration
@@ -17,9 +21,7 @@ func main() {
 
 	if n == 0 && c == 0 && e == 0 {
 		fmt.Fprintf(os.Stderr, "Usage: %s [flags] [file]\n", os.Args[0])
-		fmt.Fprintln(os.Stderr, "Plays back terminal animations.")
-		fmt.Fprintln(os.Stderr, "Pauses on newlines and clear screen escape codes.")
-		fmt.Fprintln(os.Stderr)
+		fmt.Fprint(os.Stderr, help)
 		flag.PrintDefaults()
 		os.Exit(1)
 	}

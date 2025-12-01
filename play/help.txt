@@ -1,0 +1,12 @@
+
+Plays back terminal "animations" from a text file.
+
+This program reads a text file and displays it to the terminal. It pauses on
+specific sequences of characters to create a playback effect. This allows
+specially prepared plain text files to act as animations.
+
+The program pauses on:
+  - Newlines
+  - ANSI clear screen escape codes
+
+The input file is read from standard input if no file is provided.
