@@ -1,8 +1,9 @@
 package escapes
 
 import (
-	"bytes"
 	"io"
+	"iter"
+	"slices"
 )
 
 // FindEscapes reads from an io.Reader and splits the stream before each
@@ -11,30 +12,40 @@ import (
 // The function processes the input in a streaming manner, so it doesn't
 // need to load the entire input into memory.
 func FindEscapes(r io.Reader) []string {
-	var result []string
-	var current bytes.Buffer
-	var buf [1024]byte
+	return slices.Collect(splitBeforeSeq(r, "\n\x1b"))
+}
 
-	for {
-		n, err := r.Read(buf[:])
-		buf := buf[:n]
+func splitBeforeSeq(r io.Reader, splitChars string) iter.Seq[string] {
+	var splitSet [256]bool
+	for _, c := range []byte(splitChars) {
+		splitSet[c] = true
+	}
 
-		for _, b := range buf {
-			isDelimiter := b == '\n' || b == '\x1b'
-			if isDelimiter {
-				result = append(result, current.String())
-				current.Reset()
+	return func(yield func(string) bool) {
+		substr := make([]byte, 0, 1024)
+		var readBuffer [1024]byte
+
+		for {
+			n, err := r.Read(readBuffer[:])
+			readBuffer := readBuffer[:n]
+
+			for _, b := range readBuffer {
+				if splitSet[b] {
+					if !yield(string(substr)) {
+						return
+					}
+					substr = substr[:0]
+				}
+				substr = append(substr, b)
 			}
-			current.WriteByte(b)
+			if err != nil {
+				break
+			}
 		}
-		if err != nil {
-			break
-		}
-	}
 
-	// Add the last part.
-	if current.Len() > 0 {
-		result = append(result, current.String())
+		// Add the last part.
+		if len(substr) > 0 {
+			yield(string(substr))
+		}
 	}
-	return result
 }
