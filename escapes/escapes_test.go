@@ -87,10 +87,11 @@ func (r *randRead) Read(p []byte) (n int, err error) {
 // generateRandomString creates a random string with only the characters
 // '\x1b', '\n', ' ', and 'a' to hit corner cases more easily.
 func generateRandomString(length int, r *rand.Rand) string {
-	chars := []byte{'\x1b', '\n', ' ', 'a'}
-	var result []byte
-	for range length {
-		result = append(result, chars[r.Intn(len(chars))])
+	chars := "\x1b\n a"
+
+	result := make([]byte, length)
+	for i := range length {
+		result[i] = chars[r.Intn(len(chars))]
 	}
 	return string(result)
 }
@@ -142,19 +143,12 @@ func TestFindEscapes_Properties_Structure(t *testing.T) {
 		}
 
 		// Check the first substring.
-		if len(result[0]) > 0 {
-			// If the original string starts with a delimiter, the first element of the result
-			// will be an empty string, and the second will start with the delimiter.
-			// Otherwise, the first element should not contain any delimiters.
-			startsWithDelimiter := strings.HasPrefix(origString, "\n") || strings.HasPrefix(origString, "\x1b")
-			if !startsWithDelimiter && strings.ContainsAny(result[0], "\n\x1b") {
-				t.Fatalf("Failed on iteration %d. First substring should not contain delimiters. Original: %q, Got: %q", i, origString, result[0])
-			}
+		if strings.ContainsAny(result[0], "\n\x1b") {
+			t.Fatalf("Failed on iteration %d. First substring should not contain delimiters. Original: %q, Got: %q", i, origString, result[0])
 		}
 
 		// Check the rest of the substrings.
-		for j := 1; j < len(result); j++ {
-			s := result[j]
+		for _, s := range result[1:] {
 			if len(s) == 0 {
 				t.Fatalf("Failed on iteration %d. Subsequent substrings should not be empty. Original: %q, Result: %q", i, origString, result)
 			}
