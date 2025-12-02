@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	_ "embed"
 	"flag"
 	"fmt"
@@ -33,6 +34,17 @@ func main() {
 	os.Stdout.Write([]byte("\x1b[?25l"))
 	defer os.Stdout.Write([]byte("\x1b[?25h"))
 
+	out := bufio.NewWriterSize(os.Stdout, 65536)
+	defer out.Flush()
+
+	sleep := func(t time.Duration) {
+		if t == 0 {
+			return
+		}
+		out.Flush()
+		time.Sleep(t)
+	}
+
 	isClear := regexp.MustCompile("^\x1b" + `\[\d*J`).MatchString
 	for s := range splitBeforeSeq(os.Stdin, "\n\x1b") {
 		if len(s) == 0 {
@@ -41,13 +53,13 @@ func main() {
 
 		switch s[0] {
 		case '\n':
-			time.Sleep(f.n)
+			sleep(f.n)
 		case '\x1b':
 			if isClear(s) {
-				time.Sleep(f.c)
+				sleep(f.c)
 			}
 		}
-		os.Stdout.Write([]byte(s))
+		out.Write([]byte(s))
 	}
-	time.Sleep(f.e)
+	sleep(f.e)
 }
