@@ -1,6 +1,6 @@
 # go-boba
 
-This project contains a Go Bubble Tea application and `vhs` demos.
+This project contains an assortment of Go Bubble Tea components.
 
 ## About
 
