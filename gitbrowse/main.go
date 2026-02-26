@@ -81,10 +81,7 @@ func (m model) View() string {
 		s.WriteString("\n")
 		idx := m.offset + i
 
-		line := ""
-		if 0 <= idx && idx < len(m.lines) {
-			line = m.lines[idx].text
-		}
+		line := m.at(idx).text
 		line = strings.ReplaceAll(line, "\t", "        ")
 
 		if idx == m.cursor {
@@ -95,6 +92,13 @@ func (m model) View() string {
 		}
 	}
 	return s.String()
+}
+
+func (m model) at(idx int) line {
+	if 0 <= idx && idx < len(m.lines) {
+		return m.lines[idx]
+	}
+	return line{}
 }
 
 func getFiles() []string {
@@ -162,8 +166,8 @@ type finalModel struct{ model }
 
 func (m finalModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) { return m, tea.Quit }
 func (m finalModel) View() string {
-	file := ""
 	var s strings.Builder
+	fmt.Fprintln(&s, "<context>")
 
 	var (
 		start = max(m.cursor-10, 0)
@@ -171,21 +175,19 @@ func (m finalModel) View() string {
 	)
 	for i := start; i <= end; i++ {
 		line := m.lines[i]
-		if file != line.file {
-			file = line.file
-			fmt.Fprintf(&s, "===== %s =====\n", file)
-		}
-
+		indent := "  "
 		if i == m.cursor {
-			fmt.Fprintf(&s, ">>>%d: %s", line.num, line.text)
-		} else {
-			fmt.Fprintf(&s, "   %d: %s", line.num, line.text)
+			indent = ">>"
 		}
-		s.WriteString("\n")
+		fmt.Fprintf(&s, indent+"%d: %s\n", line.num, line.text)
 	}
-	s.WriteString("\n")
-	//line:=m.lines[m.cursor]
-	//fmt.Fprintf(&s, "%s:%d:  %s", line.file, line.num,line.text)
+	fmt.Fprintln(&s, "</context>")
+	fmt.Fprintln(&s)
+
+	fmt.Fprintln(&s, "<selection>")
+	line := m.at(m.cursor)
+	fmt.Fprintf(&s, "%s:%d:  %s\n", line.file, line.num, line.text)
+	fmt.Fprintln(&s, "</selection>")
 
 	return s.String()
 }
