@@ -55,10 +55,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "end", "G":
 			m.cursor = len(m.lines)
 		}
-
-		m.cursor = min(m.cursor, len(m.lines)-1)
-		m.cursor = max(m.cursor, 0)
+	case tea.MouseMsg:
+		const scrollSize = 3
+		switch msg.Type {
+		case tea.MouseWheelUp:
+			m.cursor -= scrollSize
+		case tea.MouseWheelDown:
+			m.cursor += scrollSize
+		}
 	}
+
+	m.cursor = min(m.cursor, len(m.lines)-1)
+	m.cursor = max(m.cursor, 0)
 
 	m.offset = min(m.offset, m.cursor)
 	m.offset = max(m.offset, m.cursor-m.height+1)
@@ -139,7 +147,7 @@ func main() {
 
 	lipgloss.SetDefaultRenderer(lipgloss.NewRenderer(os.Stderr))
 	m := model{lines: lines}
-	p := tea.NewProgram(m, tea.WithOutput(os.Stderr), tea.WithAltScreen())
+	p := tea.NewProgram(m, tea.WithOutput(os.Stderr), tea.WithAltScreen(), tea.WithMouseCellMotion())
 	res, err := p.Run()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error running program: %v\n", err)
