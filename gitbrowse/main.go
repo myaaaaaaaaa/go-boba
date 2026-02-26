@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -88,10 +89,40 @@ func (m model) View() string {
 	return s.String()
 }
 
+func getFiles() []string {
+	if len(os.Args) > 1 {
+		return os.Args[1:]
+	}
+
+	var files []string
+
+	cmd := exec.Command("git", "ls-files")
+	out, _ := cmd.Output()
+	for file := range strings.SplitSeq(string(out), "\n") {
+		if file != "" {
+			files = append(files, file)
+		}
+	}
+	if len(files) > 0 {
+		return files
+	}
+
+	entries, err := os.ReadDir(".")
+	if err == nil {
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				files = append(files, entry.Name())
+			}
+		}
+	}
+
+	return files
+}
+
 func main() {
 	var lines []line
 
-	for _, arg := range os.Args[1:] {
+	for _, arg := range getFiles() {
 		b, err := os.ReadFile(arg)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error reading file %s: %v\n", arg, err)
