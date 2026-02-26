@@ -80,7 +80,7 @@ func (m model) View() string {
 		line = strings.ReplaceAll(line, "\t", "        ")
 
 		if idx == m.cursor {
-			style := lipgloss.NewStyle().Reverse(true)
+			style := lipgloss.Style{}.Reverse(true)
 			s.WriteString(style.Render(line + strings.Repeat(" ", m.width)))
 		} else {
 			s.WriteString(line)
@@ -137,6 +137,7 @@ func main() {
 		}
 	}
 
+	lipgloss.SetDefaultRenderer(lipgloss.NewRenderer(os.Stderr))
 	m := model{lines: lines}
 	p := tea.NewProgram(m, tea.WithOutput(os.Stderr), tea.WithAltScreen())
 	res, err := p.Run()
@@ -157,6 +158,8 @@ func (m finalModel) View() string {
 		return ""
 	}
 
+	file := ""
+
 	var s strings.Builder
 	start := m.cursor - 10
 	if start < 0 {
@@ -169,16 +172,21 @@ func (m finalModel) View() string {
 
 	for i := start; i <= end; i++ {
 		line := m.lines[i]
+		if file != line.file {
+			file = line.file
+			fmt.Fprintf(&s, "===== %s =====\n", file)
+		}
+
 		if i == m.cursor {
-			style := lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("204"))
-			s.WriteString(style.Render(fmt.Sprintf("> %s:%d: %s", line.file, line.num, line.text)))
+			fmt.Fprintf(&s, ">>>%d: %s", line.num, line.text)
 		} else {
-			s.WriteString(fmt.Sprintf("  %s:%d: %s", line.file, line.num, line.text))
+			fmt.Fprintf(&s, "   %d: %s", line.num, line.text)
 		}
-		if i < end {
-			s.WriteString("\n")
-		}
+		s.WriteString("\n")
 	}
+	s.WriteString("\n")
+	//line:=m.lines[m.cursor]
+	//fmt.Fprintf(&s, "%s:%d:  %s", line.file, line.num,line.text)
 
 	return s.String()
 }

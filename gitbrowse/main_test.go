@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -270,161 +271,119 @@ func TestModelUpdatePanics(t *testing.T) {
 	}
 }
 
-func TestEndToEnd(t *testing.T) {
-	var lines []line
-	for i := range 50 {
-		i := i + 1
-		lines = append(lines, line{text: fmt.Sprintf("<%d>", i), num: i, file: "test.txt"})
-	}
-
-	var m tea.Model = model{lines: lines}
-	m, _ = m.Update(tea.WindowSizeMsg{Width: 80, Height: 10})
-
-	keys := "jjfkq"
-	for _, k := range keys {
-		msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{k}}
-		m, _ = m.Update(msg)
-	}
-
-	out := m.View()
-
-	// Check if the final output contains expected lines
-	if !strings.Contains(out, "<1>") {
-		t.Errorf("View should contain '<1>'")
-	}
-	if !strings.Contains(out, "<19>") {
-		t.Errorf("View should contain '<19>'")
-	}
-
-	// Check if it doesn't contain unexpected lines
-	if strings.Contains(out, "<20>") {
-		t.Errorf("View should not contain '<20>'")
-	}
-	if strings.Contains(out, "<50>") {
-		t.Errorf("View should not contain '<50>'")
-	}
-
-	// The cursor is at index 8 (which is line 9).
-	// start = 8 - 10 = 0 (line 1 to line 19)
-	// count lines
-	linesOut := strings.Split(out, "\n")
-	if len(linesOut) != 19 {
-		t.Errorf("View should have 19 lines, got %d", len(linesOut))
-	}
-}
-
 func TestEndToEndEdgeCases(t *testing.T) {
 	tests := []struct {
-		name              string
-		lineCount         int
-		windowWidth       int
-		windowHeight      int
-		keys              string
-		expectedContains  []string
-		expectedNotCont   []string
-		expectedLineCount int
+		name               string
+		lineCount          int
+		windowWidth        int
+		windowHeight       int
+		keys               string
+		expectedRangeStart int
+		expectedRangeSize  int
 	}{
 		{
-			name:              "empty file",
-			lineCount:         0,
-			windowWidth:       80,
-			windowHeight:      24,
-			keys:              "q",
-			expectedContains:  []string{},
-			expectedNotCont:   []string{"<1>"},
-			expectedLineCount: 0, // Empty string
+			name:               "empty file",
+			lineCount:          0,
+			windowWidth:        80,
+			windowHeight:       24,
+			keys:               "q",
+			expectedRangeStart: 0,
+			expectedRangeSize:  0,
 		},
 		{
-			name:              "single line file",
-			lineCount:         1,
-			windowWidth:       80,
-			windowHeight:      24,
-			keys:              "q",
-			expectedContains:  []string{"<1>"},
-			expectedNotCont:   []string{"<2>"},
-			expectedLineCount: 1,
+			name:               "single line file",
+			lineCount:          1,
+			windowWidth:        80,
+			windowHeight:       24,
+			keys:               "q",
+			expectedRangeStart: 0,
+			expectedRangeSize:  1,
 		},
 		{
-			name:              "navigate to very end",
-			lineCount:         100,
-			windowWidth:       80,
-			windowHeight:      24,
-			keys:              "Gq",                      // 'G' goes to end
-			expectedContains:  []string{"<90>", "<100>"}, // Cursor at 99. View is 89 to 99 (11 lines)
-			expectedNotCont:   []string{"<89>", "<101>"},
-			expectedLineCount: 11,
+			name:               "navigate to very end",
+			lineCount:          100,
+			windowWidth:        80,
+			windowHeight:       24,
+			keys:               "Gq", // 'G' goes to end
+			expectedRangeStart: 89,
+			expectedRangeSize:  11,
 		},
 		{
-			name:              "navigate to start after moving",
-			lineCount:         100,
-			windowWidth:       80,
-			windowHeight:      24,
-			keys:              "Ggq",                   // 'G' to end, 'g' to start
-			expectedContains:  []string{"<1>", "<11>"}, // Cursor at 0. View is 0 to 10 (11 lines)
-			expectedNotCont:   []string{"<12>"},
-			expectedLineCount: 11,
+			name:               "navigate to start after moving",
+			lineCount:          100,
+			windowWidth:        80,
+			windowHeight:       24,
+			keys:               "Ggq", // 'G' to end, 'g' to start
+			expectedRangeStart: 0,
+			expectedRangeSize:  11,
 		},
 		{
-			name:              "page down past EOF",
-			lineCount:         20,
-			windowWidth:       80,
-			windowHeight:      10,                       // Page size = 7
-			keys:              "fffq",                   // Page down 3 times
-			expectedContains:  []string{"<10>", "<20>"}, // Cursor at 19. View is 9 to 19 (11 lines)
-			expectedNotCont:   []string{"<9>", "<21>"},
-			expectedLineCount: 11,
+			name:               "page down past EOF",
+			lineCount:          20,
+			windowWidth:        80,
+			windowHeight:       10, // Page size = 7
+			keys:               "fffq",
+			expectedRangeStart: 9,
+			expectedRangeSize:  11,
 		},
 		{
-			name:              "page up past start",
-			lineCount:         20,
-			windowWidth:       80,
-			windowHeight:      10,
-			keys:              "fwwwq",                 // Page down once, up three times
-			expectedContains:  []string{"<1>", "<11>"}, // Cursor at 0. View is 0 to 10 (11 lines)
-			expectedNotCont:   []string{"<12>"},
-			expectedLineCount: 11,
+			name:               "page up past start",
+			lineCount:          20,
+			windowWidth:        80,
+			windowHeight:       10,
+			keys:               "fwwwq",
+			expectedRangeStart: 0,
+			expectedRangeSize:  11,
+		},
+		{
+			name:               "basic navigation",
+			lineCount:          50,
+			windowWidth:        80,
+			windowHeight:       10,
+			keys:               "jjfkq",
+			expectedRangeStart: 0,
+			expectedRangeSize:  19,
 		},
 	}
+
+	findTags := regexp.MustCompile(`<<<\d+>>>`).FindAllString
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var lines []line
 			for i := range tt.lineCount {
 				i := i + 1
-				lines = append(lines, line{text: fmt.Sprintf("<%d>", i), num: i, file: "test.txt"})
+				lines = append(lines, line{text: fmt.Sprintf("<<<%d>>>", i), num: i, file: "test.txt"})
 			}
 
 			var m tea.Model = model{lines: lines}
 			m, _ = m.Update(tea.WindowSizeMsg{Width: tt.windowWidth, Height: tt.windowHeight})
-
 			for _, k := range tt.keys {
 				msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{k}}
 				m, _ = m.Update(msg)
 			}
-
 			out := m.View()
 
-			for _, expected := range tt.expectedContains {
-				if !strings.Contains(out, expected) {
-					t.Errorf("View should contain '%s'", expected)
+			for i := tt.expectedRangeStart - 100; i < tt.expectedRangeStart+tt.expectedRangeSize+100; i++ {
+				lineNum := i + 1
+				pattern := fmt.Sprintf("<<<%d>>>", lineNum)
+				shouldBePresent := i >= tt.expectedRangeStart && i < tt.expectedRangeStart+tt.expectedRangeSize
+				if i < 0 || i >= tt.lineCount {
+					shouldBePresent = false
+				}
+
+				if shouldBePresent != strings.Contains(out, pattern) {
+					t.Errorf("contains('%s') should be %v", pattern, shouldBePresent)
 				}
 			}
 
-			for _, unexpected := range tt.expectedNotCont {
-				if strings.Contains(out, unexpected) {
-					t.Errorf("View should not contain '%s'", unexpected)
-				}
+			uniqueMatches := make(map[string]bool)
+			for _, m := range findTags(out, -1) {
+				uniqueMatches[m] = true
 			}
 
-			if tt.expectedLineCount == 0 {
-				if out != "" {
-					t.Errorf("View should be empty, got %q", out)
-				}
-			} else {
-				linesOut := strings.Split(out, "\n")
-				if len(linesOut) != tt.expectedLineCount {
-					t.Errorf("View should have %d lines, got %d:\n%s", tt.expectedLineCount, len(linesOut), out)
-				}
+			if len(uniqueMatches) != tt.expectedRangeSize {
+				t.Errorf("View should have %d lines, got %d:\n%s", tt.expectedRangeSize, len(uniqueMatches), out)
 			}
 		})
 	}
