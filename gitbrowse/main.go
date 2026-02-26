@@ -162,22 +162,13 @@ type finalModel struct{ model }
 
 func (m finalModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) { return m, tea.Quit }
 func (m finalModel) View() string {
-	if len(m.lines) == 0 {
-		return ""
-	}
-
 	file := ""
-
 	var s strings.Builder
-	start := m.cursor - 10
-	if start < 0 {
-		start = 0
-	}
-	end := m.cursor + 10
-	if end >= len(m.lines) {
-		end = len(m.lines) - 1
-	}
 
+	var (
+		start = max(m.cursor-10, 0)
+		end   = min(m.cursor+10, len(m.lines)-1)
+	)
 	for i := start; i <= end; i++ {
 		line := m.lines[i]
 		if file != line.file {
