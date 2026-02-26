@@ -46,16 +46,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cursor = len(m.lines)
 		}
 
-		m.cursor = max(m.cursor, 0)
 		m.cursor = min(m.cursor, len(m.lines)-1)
+		m.cursor = max(m.cursor, 0)
 	}
 
-	if m.cursor < m.offset {
-		m.offset = m.cursor
-	}
-	if m.cursor >= m.offset+m.height {
-		m.offset = m.cursor - m.height + 1
-	}
+	m.offset = min(m.offset, m.cursor)
+	m.offset = max(m.offset, m.cursor-m.height+1)
+	m.offset = max(m.offset, 0)
 
 	return m, nil
 }
@@ -65,11 +62,11 @@ func (m model) View() string {
 	for i := range m.height {
 		s.WriteString("\n")
 		idx := m.offset + i
-		if idx >= len(m.lines) {
-			break
-		}
 
-		line := m.lines[idx]
+		line := ""
+		if 0 <= idx && idx < len(m.lines) {
+			line = m.lines[idx]
+		}
 		line = strings.ReplaceAll(line, "\t", "        ")
 
 		if idx == m.cursor {
