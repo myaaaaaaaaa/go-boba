@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -88,4 +89,48 @@ func (e EditList) validate() {
 	if fmt.Sprint(e) != fmt.Sprint(parsed) {
 		panic(fmt.Sprintf("%v != %v", e, parsed))
 	}
+}
+
+func quoteBash(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
+}
+
+func (list EditList) Export(outputVideo string) string {
+	var w strings.Builder
+	fmt.Fprintln(&w, "#!/bin/bash")
+	fmt.Fprintln(&w, "set -e")
+	fmt.Fprintln(&w, "")
+	fmt.Fprintln(&w, "mkdir -p edl_segments")
+
+	concatFile := "edl_concat.txt"
+	fmt.Fprintf(&w, "rm -f %s\n", quoteBash(concatFile))
+
+	for i, entry := range list {
+		ext := filepath.Ext(entry.Filename)
+		if ext == "" {
+			ext = ".mkv"
+		}
+		segmentName := fmt.Sprintf("edl_segments/part_%04d%s", i, ext)
+
+		// ffmpeg -ss <start> -i <filename> -t <duration> -c copy <i>.<ext>
+		fmt.Fprintf(&w, "ffmpeg -y -ss %v -i %s -t %v -c copy %s\n",
+			entry.Start, quoteBash(entry.Filename), entry.Duration, quoteBash(segmentName))
+
+		// Add to concat file
+		// format: file 'path'
+		// We use double quotes for echo to allow expansion, but inside we want literal single quotes.
+		// We use quoteBash(segmentName) which properly escapes single quotes and wraps the string in single quotes.
+		// E.g. segmentName="foo'bar" -> "'foo'\''bar'"
+		// echo "file 'foo'\''bar'" prints file 'foo'\''bar' which is what ffmpeg expects.
+		fmt.Fprintf(&w, "echo \"file %s\" >> %s\n", quoteBash(segmentName), quoteBash(concatFile))
+	}
+
+	fmt.Fprintln(&w, "")
+	fmt.Fprintf(&w, "ffmpeg -y -f concat -safe 0 -i %s -c copy %s\n", quoteBash(concatFile), quoteBash(outputVideo))
+
+	fmt.Fprintln(&w, "")
+	fmt.Fprintln(&w, "# echo \"Cleaning up...\"")
+	fmt.Fprintf(&w, "# rm -rf edl_segments %s\n", quoteBash(concatFile))
+
+	return w.String()
 }
