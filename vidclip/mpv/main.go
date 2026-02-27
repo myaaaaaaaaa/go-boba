@@ -15,17 +15,21 @@ import (
 var r = rand.Intn(1000000)
 
 func main() {
+	t := 15.0
+	mpvChooseTime(os.Args[1], &t)
+	fmt.Println("final time:", t)
+}
+
+func mpvChooseTime(video string, t *float64) {
 	// Generate a random socket path
 	socketPath := filepath.Join(os.TempDir(), fmt.Sprintf("mpv-socket-%d", r))
 
-	// Prepare arguments for mpv
-	mpvArgs := []string{
-		"--input-ipc-server=" + socketPath,
-	}
-	mpvArgs = append(mpvArgs, os.Args[1:]...)
+	cmd := exec.Command("mpv",
+		"--input-ipc-server="+socketPath,
+		"--start="+fmt.Sprint(*t),
+		video,
+	)
 
-	cmd := exec.Command("mpv", mpvArgs...)
-	fmt.Println(mpvArgs)
 	if err := cmd.Start(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start mpv: %v\n", err)
 		os.Exit(1)
@@ -57,7 +61,7 @@ func main() {
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
 		parseTimePosEvent(scanner.Text(), func(timePos float64) {
-			fmt.Printf("%.3f\n", timePos)
+			*t = timePos
 		})
 	}
 
