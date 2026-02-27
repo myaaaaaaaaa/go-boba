@@ -14,12 +14,6 @@ import (
 
 var r = rand.Intn(1000000)
 
-func main() {
-	t := 15.0
-	mpvChooseTime(os.Args[1], &t)
-	fmt.Println("final time:", t)
-}
-
 func mpvChooseTime(video string, t *float64) {
 	// Generate a random socket path
 	socketPath := filepath.Join(os.TempDir(), fmt.Sprintf("mpv-socket-%d", r))
