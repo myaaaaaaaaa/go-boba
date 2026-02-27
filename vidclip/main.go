@@ -40,6 +40,12 @@ func main() {
 		t := 15.0
 		mpvChooseTime(file, &t)
 		fmt.Println("final time:", t)
+	case "probe":
+		file := tryPop(&args, "Usage: %s probe <file>", exeName)
+		d, err := videoDuration(file)
+		failIf(err != nil, "Error finding duration: %v", err)
+		fmt.Println("duration:", d)
+
 	default:
 		failIf(true, "Unknown subcommand: %s", subcmd)
 	}
