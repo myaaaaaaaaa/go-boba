@@ -6,37 +6,41 @@ import (
 	"os"
 )
 
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s <subcommand> [args...]\n", os.Args[0])
+func failIf(aProblem bool, format string, a ...any) {
+	if aProblem {
+		fmt.Fprintf(os.Stderr, format, a...)
+		fmt.Fprintln(os.Stderr)
 		os.Exit(1)
 	}
+}
 
-	switch os.Args[1] {
+func tryPop(args *[]string, format string, a ...any) string {
+	failIf(len(*args) == 0, format, a...)
+	val := (*args)[0]
+	*args = (*args)[1:]
+	return val
+}
+
+func main() {
+	args := os.Args
+	exeName := tryPop(&args, "Error: no program name")
+	subcmd := tryPop(&args, "Usage: %s <subcommand> [args...]", exeName)
+
+	switch subcmd {
 	case "export":
 		f, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
-			os.Exit(1)
-		}
+		failIf(err != nil, "Error reading file: %v", err)
 
 		list, err := Parse(string(f))
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error parsing EDL: %v\n", err)
-			os.Exit(1)
-		}
+		failIf(err != nil, "Error parsing EDL: %v", err)
 
-		fmt.Print(list.Export())
+		fmt.Println(list.Export())
 	case "mpv":
-		if len(os.Args) < 3 {
-			fmt.Fprintf(os.Stderr, "Usage: %s mpv <file>\n", os.Args[0])
-			os.Exit(1)
-		}
+		file := tryPop(&args, "Usage: %s mpv <file>", exeName)
 		t := 15.0
-		mpvChooseTime(os.Args[2], &t)
+		mpvChooseTime(file, &t)
 		fmt.Println("final time:", t)
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n", os.Args[1])
-		os.Exit(1)
+		failIf(true, "Unknown subcommand: %s", subcmd)
 	}
 }
