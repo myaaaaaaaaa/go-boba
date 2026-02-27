@@ -86,12 +86,12 @@ func TestExportGolden(t *testing.T) {
 		t.Fatalf("Parse failed: %v", err)
 	}
 
-	scriptContent := list.Export("final_output.mkv")
+	scriptContent := list.Export()
 
 	hash := sha256.Sum256([]byte(scriptContent))
 	gotHash := hex.EncodeToString(hash[:])
 
-	wantHash := "e3a7faa9cefc9bb29332f544ab703e3b90eed5168b2f64e08c8b8a90bc67ef97"
+	wantHash := "aa635efdc85a2cbc913f69621dcb0b8a76b5659f0df0e12525af39fb3f5399bb"
 
 	if gotHash != wantHash {
 		t.Errorf("EditList.Export output hash changed.\nGot:  %s\nWant: %s\nOutput:\n%s", gotHash, wantHash, scriptContent)

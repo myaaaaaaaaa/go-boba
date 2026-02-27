@@ -95,7 +95,7 @@ func quoteBash(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
 
-func (list EditList) Export(outputVideo string) string {
+func (list EditList) Export() string {
 	var w strings.Builder
 	fmt.Fprintln(&w, "#!/bin/bash")
 	fmt.Fprintln(&w, "set -e")
@@ -126,7 +126,7 @@ func (list EditList) Export(outputVideo string) string {
 	}
 
 	fmt.Fprintln(&w, "")
-	fmt.Fprintf(&w, "ffmpeg -y -f concat -safe 0 -i %s -c copy %s\n", quoteBash(concatFile), quoteBash(outputVideo))
+	fmt.Fprintf(&w, "ffmpeg -y -f concat -safe 0 -i %s -c copy \"$1\"\n", quoteBash(concatFile))
 
 	fmt.Fprintln(&w, "")
 	fmt.Fprintln(&w, "# echo \"Cleaning up...\"")
