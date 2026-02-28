@@ -5,10 +5,19 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
+	"io/fs"
 	"os"
 	"regexp"
 	"time"
 )
+
+func isTerminal(f fs.File) bool {
+	stat, err := f.Stat()
+	if err != nil {
+		return false
+	}
+	return stat.Mode()&fs.ModeCharDevice != 0
+}
 
 //go:embed help.txt
 var help string
@@ -19,12 +28,12 @@ func main() {
 	}
 	var f flags
 	flag.DurationVar(&f.n, "n", 0, "newline sleep")
-	flag.DurationVar(&f.c, "c", 0, "clear sleep")
+	flag.DurationVar(&f.c, "c", time.Millisecond*100, "clear sleep")
 	flag.DurationVar(&f.e, "e", 0, "ending sleep")
 	flag.Parse()
 
-	if (f == flags{}) {
-		fmt.Fprintf(os.Stderr, "Usage: %s [flags] [file]\n", os.Args[0])
+	if isTerminal(os.Stdin) {
+		fmt.Fprintf(os.Stderr, "Usage: %s [flags] <file\n", os.Args[0])
 		fmt.Fprint(os.Stderr, help)
 		flag.PrintDefaults()
 		os.Exit(1)
