@@ -180,9 +180,9 @@ func TestBuffer(t *testing.T) {
 	callCount = 0
 
 	// Access buffered cells multiple times
-	for i := 0; i < 3; i++ {
-		for y := 0; y < height; y++ {
-			for x := 0; x < width; x++ {
+	for range 3 {
+		for y := range height {
+			for x := range width {
 				_ = buffered.At(x, y)
 			}
 		}

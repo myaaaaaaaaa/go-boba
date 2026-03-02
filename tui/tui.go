@@ -194,14 +194,8 @@ func (b Fixed) NinePatchScale(centerRune rune) Scalable {
 
 	return func(w, h int) Fixed {
 		// Destination regions
-		destCenterW := w - srcLeftW - (b.Width - (maxX + 1))
-		if destCenterW < 0 {
-			destCenterW = 0
-		}
-		destCenterH := h - srcTopH - (b.Height - (maxY + 1))
-		if destCenterH < 0 {
-			destCenterH = 0
-		}
+		destCenterW := max(w-srcLeftW-(b.Width-(maxX+1)), 0)
+		destCenterH := max(h-srcTopH-(b.Height-(maxY+1)), 0)
 
 		return Fixed{
 			Width:  w,
@@ -352,9 +346,9 @@ func (f Fixed) Buffer() Fixed {
 	height := f.Height
 
 	grid := make([][]Cell, height)
-	for y := 0; y < height; y++ {
+	for y := range height {
 		row := make([]Cell, width)
-		for x := 0; x < width; x++ {
+		for x := range width {
 			row[x] = f.At(x, y)
 		}
 		grid[y] = row
@@ -519,10 +513,7 @@ func WrapText(text string) Scalable {
 
 			// Truncate to fit ellipses
 			if len(lastLine)+len(dots) > width {
-				keep := width - len(dots)
-				if keep < 0 {
-					keep = 0
-				}
+				keep := max(width-len(dots), 0)
 				lastLine = lastLine[:keep] + dots
 			} else {
 				lastLine += dots
