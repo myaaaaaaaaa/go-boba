@@ -30,7 +30,7 @@ type model struct {
 // Styles for the TUI components.
 var (
 	defaultStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("238"))            // Dark gray/black
-	faintStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("246"))            // Medium gray for inactive
+	faintStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("251"))            // Medium gray for inactive
 	subtleStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("251"))            // Light gray for scrub bg
 	cyanStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("6"))              // Cyan header
 	errorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true) // Salmon/Red
@@ -193,11 +193,11 @@ func (m model) View() string {
 			formatTime(clip.Times[1]),
 		}
 		if isSelected {
-			timeStrs[m.cursorCol] = defaultStyle.Bold(true).Render(timeStrs[m.cursorCol])
+			timeStrs[m.cursorCol] = blueStyle.Bold(true).Render(timeStrs[m.cursorCol])
 		}
 
 		clipDuration := clip.Times[1] - clip.Times[0]
-		leftTop := faintStyle.Render(timeStrs[0]) + faintStyle.Render(" - ") + faintStyle.Render(timeStrs[1]) + defaultStyle.Render(fmt.Sprintf("  (%0.1fs)", clipDuration))
+		leftTop := faintStyle.Render(timeStrs[0]) + faintStyle.Render(" - ") + faintStyle.Render(timeStrs[1]) + defaultStyle.Render(fmt.Sprintf("    (%0.1fs)", clipDuration))
 
 		metadata := clip.Source + "  " + formatTime(sourceDuration)
 		if clip.Source == index(m.clips, i-1).Source {
