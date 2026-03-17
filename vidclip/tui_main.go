@@ -13,9 +13,9 @@ import (
 
 // Clip represents a single video segment.
 type Clip struct {
-	startTime float64
-	endTime   float64
-	srcVideo  string
+	Source    string
+	StartTime float64
+	EndTime   float64
 }
 
 // ClipList is the central data structure as requested.
@@ -45,11 +45,11 @@ var (
 
 func initialModel() model {
 	clips := ClipList{
-		{startTime: 120.5, endTime: 145.6, srcVideo: "sotu_2024_raw.mp4"},
-		{startTime: 150.5, endTime: 165.6, srcVideo: "sotu_2024_raw.mp4"},
-		{startTime: 180.5, endTime: 200.1, srcVideo: "sotu_2024_raw.mp4"},
-		{startTime: 340.1, endTime: 385.3, srcVideo: "gameplay_capture_01.mkv"},
-		{startTime: 0.0, endTime: 5.5, srcVideo: "outro.mp4"},
+		{Source: "sotu_2024_raw.mp4", StartTime: 120.5, EndTime: 145.6},
+		{Source: "sotu_2024_raw.mp4", StartTime: 150.5, EndTime: 165.6},
+		{Source: "sotu_2024_raw.mp4", StartTime: 180.5, EndTime: 200.1},
+		{Source: "gameplay_capture_01.mkv", StartTime: 340.1, EndTime: 385.3},
+		{Source: "outro.mp4", StartTime: 0.0, EndTime: 5.5},
 	}
 
 	return model{
@@ -102,7 +102,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case pathMsg:
-		m.clips = append(m.clips, Clip{endTime: 1, srcVideo: string(msg)})
+		m.clips = append(m.clips, Clip{EndTime: 1, Source: string(msg)})
 	case tea.WindowSizeMsg:
 		m.size = msg
 	}
@@ -166,7 +166,7 @@ func (m model) View() string {
 	// Media Clip List
 	for i, clip := range m.clips {
 		isSelected := (i == m.cursor)
-		sourceDuration, _ := m.durationOf(clip.srcVideo)
+		sourceDuration, _ := m.durationOf(clip.Source)
 
 		textStyle := defaultStyle
 		if isSelected {
@@ -175,11 +175,11 @@ func (m model) View() string {
 			textStyle = faintStyle
 		}
 
-		clipDuration := clip.endTime - clip.startTime
-		leftTop := textStyle.Render(fmt.Sprintf("%s - %s  (%0.1fs)", formatTime(clip.startTime), formatTime(clip.endTime), clipDuration))
+		clipDuration := clip.EndTime - clip.StartTime
+		leftTop := textStyle.Render(fmt.Sprintf("%s - %s  (%0.1fs)", formatTime(clip.StartTime), formatTime(clip.EndTime), clipDuration))
 
-		metadata := clip.srcVideo + "  " + formatTime(sourceDuration)
-		if clip.srcVideo == index(m.clips, i-1).srcVideo {
+		metadata := clip.Source + "  " + formatTime(sourceDuration)
+		if clip.Source == index(m.clips, i-1).Source {
 			metadata = ""
 		}
 		rightTop := textStyle.Render(metadata)
@@ -190,9 +190,9 @@ func (m model) View() string {
 
 		scrubBar := ""
 		if sourceDuration != 0 {
-			scrubBar = m.renderScrubBar(clip.startTime/sourceDuration, clip.endTime/sourceDuration, contentWidth, isSelected)
+			scrubBar = m.renderScrubBar(clip.StartTime/sourceDuration, clip.EndTime/sourceDuration, contentWidth, isSelected)
 		}
-		if clip.srcVideo == index(m.clips, i+1).srcVideo {
+		if clip.Source == index(m.clips, i+1).Source {
 			scrubBar = strings.ReplaceAll(scrubBar, "─", " ")
 		}
 
@@ -204,7 +204,7 @@ func (m model) View() string {
 	// Summary Section
 	totalDuration := 0.0
 	for _, clip := range m.clips {
-		totalDuration += clip.endTime - clip.startTime
+		totalDuration += clip.EndTime - clip.StartTime
 	}
 	s.WriteString(fmt.Sprintf("Total Duration: %0.1fs\n", totalDuration))
 
@@ -213,7 +213,7 @@ func (m model) View() string {
 
 	var timeline strings.Builder
 	for i, clip := range m.clips {
-		clipDuration := clip.endTime - clip.startTime
+		clipDuration := clip.EndTime - clip.StartTime
 		segmentWidth := int((clipDuration / totalDuration) * float64(timelineWidth-len(m.clips)))
 		if segmentWidth == 0 && clipDuration > 0 {
 			segmentWidth = 1

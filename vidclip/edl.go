@@ -11,7 +11,7 @@ import (
 )
 
 type EditEntry struct {
-	Filename string
+	Source   string
 	Start    float64
 	Duration float64
 }
@@ -50,7 +50,7 @@ func Parse(s string) (EditList, error) {
 		}
 
 		list = append(list, EditEntry{
-			Filename: filename,
+			Source:   filename,
 			Start:    start,
 			Duration: duration,
 		})
@@ -63,7 +63,7 @@ func (e EditList) Serialize() string {
 	lines := []string{"# mpv EDL v0"}
 
 	for _, entry := range e {
-		filename := entry.Filename
+		filename := entry.Source
 		if strings.Contains(filename, ",") {
 			filename = "\"" + filename + "\""
 		}
@@ -106,7 +106,7 @@ func (list EditList) Export() string {
 	fmt.Fprintf(&w, "rm -f %s\n", quoteBash(concatFile))
 
 	for i, entry := range list {
-		ext := filepath.Ext(entry.Filename)
+		ext := filepath.Ext(entry.Source)
 		if ext == "" {
 			ext = ".mkv"
 		}
@@ -114,7 +114,7 @@ func (list EditList) Export() string {
 
 		// ffmpeg -ss <start> -i <filename> -t <duration> -c copy <i>.<ext>
 		fmt.Fprintf(&w, "ffmpeg -y -ss %v -i %s -t %v -c copy %s\n",
-			entry.Start, quoteBash(entry.Filename), entry.Duration, quoteBash(segmentName))
+			entry.Start, quoteBash(entry.Source), entry.Duration, quoteBash(segmentName))
 
 		// Add to concat file
 		// format: file 'path'

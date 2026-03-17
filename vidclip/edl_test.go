@@ -65,11 +65,11 @@ func TestParseInvalid(t *testing.T) {
 
 func TestRoundtrip(t *testing.T) {
 	EditList{
-		{Filename: "f1.mkv", Start: 10, Duration: 20},
-		{Filename: "f2.mkv", Start: 10.5, Duration: 1.5},
-		{Filename: "comma,file.mkv", Start: 0, Duration: 5},
-		{Filename: "video.mp4", Start: 100, Duration: 50},
-		{Filename: "audio.mp3", Start: 0, Duration: 30.5},
+		{Source: "f1.mkv", Start: 10, Duration: 20},
+		{Source: "f2.mkv", Start: 10.5, Duration: 1.5},
+		{Source: "comma,file.mkv", Start: 0, Duration: 5},
+		{Source: "video.mp4", Start: 100, Duration: 50},
+		{Source: "audio.mp3", Start: 0, Duration: 30.5},
 	}.validate()
 }
 
