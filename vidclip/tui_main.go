@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand/v2"
 	"os"
 	"slices"
 	"strings"
@@ -23,6 +24,7 @@ type model struct {
 	err      string
 
 	durationOf func(filename string) (float64, error)
+	changeTime func(video string, t *float64)
 }
 
 // Styles for the TUI components.
@@ -37,11 +39,11 @@ var (
 
 func initialModel() model {
 	clips := EditList{
-		{Source: "sotu_2024_raw.mp4", StartTime: 120.5, EndTime: 145.6},
-		{Source: "sotu_2024_raw.mp4", StartTime: 150.5, EndTime: 165.6},
-		{Source: "sotu_2024_raw.mp4", StartTime: 180.5, EndTime: 200.1},
-		{Source: "gameplay_capture_01.mkv", StartTime: 340.1, EndTime: 385.3},
-		{Source: "outro.mp4", StartTime: 0.0, EndTime: 5.5},
+		{Source: "sotu_2024_raw.mp4", Times: [2]float64{120.5, 145.6}},
+		{Source: "sotu_2024_raw.mp4", Times: [2]float64{150.5, 165.6}},
+		{Source: "sotu_2024_raw.mp4", Times: [2]float64{180.5, 200.1}},
+		{Source: "gameplay_capture_01.mkv", Times: [2]float64{340.1, 385.3}},
+		{Source: "outro.mp4", Times: [2]float64{0.0, 5.5}},
 	}
 
 	return model{
@@ -53,6 +55,9 @@ func initialModel() model {
 		durationOf: memoize12(func(filename string) (float64, error) {
 			return float64(len(filename) * 50), nil
 		}),
+		changeTime: func(video string, t *float64) {
+			*t += rand.Float64()*4 - 2
+		},
 	}
 }
 
@@ -104,9 +109,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.saved = slices.Clone(m.clips)
 			}
+		case "enter":
+			clip := &m.clips[m.cursor]
+			m.changeTime(clip.Source, &clip.Times[m.cursorCol])
 		}
 	case pathMsg:
-		m.clips = append(m.clips, EditEntry{EndTime: 1, Source: string(msg)})
+		m.clips = append(m.clips, EditEntry{Source: string(msg), Times: [2]float64{0, 1}})
 	case tea.WindowSizeMsg:
 		m.size = msg
 	}
@@ -180,23 +188,16 @@ func (m model) View() string {
 		isSelected := (i == m.cursor)
 		sourceDuration, _ := m.durationOf(clip.Source)
 
-		startTimeStr := formatTime(clip.StartTime)
-		endTimeStr := formatTime(clip.EndTime)
+		timeStrs := [2]string{
+			formatTime(clip.Times[0]),
+			formatTime(clip.Times[1]),
+		}
 		if isSelected {
-			if m.cursorCol == 0 {
-				startTimeStr = defaultStyle.Bold(true).Render(startTimeStr)
-				endTimeStr = faintStyle.Render(endTimeStr)
-			} else {
-				startTimeStr = faintStyle.Render(startTimeStr)
-				endTimeStr = defaultStyle.Bold(true).Render(endTimeStr)
-			}
-		} else {
-			startTimeStr = faintStyle.Render(startTimeStr)
-			endTimeStr = faintStyle.Render(endTimeStr)
+			timeStrs[m.cursorCol] = defaultStyle.Bold(true).Render(timeStrs[m.cursorCol])
 		}
 
-		clipDuration := clip.EndTime - clip.StartTime
-		leftTop := startTimeStr + faintStyle.Render(" - ") + endTimeStr + defaultStyle.Render(fmt.Sprintf("  (%0.1fs)", clipDuration))
+		clipDuration := clip.Times[1] - clip.Times[0]
+		leftTop := faintStyle.Render(timeStrs[0]) + faintStyle.Render(" - ") + faintStyle.Render(timeStrs[1]) + defaultStyle.Render(fmt.Sprintf("  (%0.1fs)", clipDuration))
 
 		metadata := clip.Source + "  " + formatTime(sourceDuration)
 		if clip.Source == index(m.clips, i-1).Source {
@@ -210,7 +211,7 @@ func (m model) View() string {
 
 		scrubBar := ""
 		if sourceDuration != 0 {
-			scrubBar = m.renderScrubBar(clip.StartTime/sourceDuration, clip.EndTime/sourceDuration, contentWidth, isSelected)
+			scrubBar = m.renderScrubBar(clip.Times[0]/sourceDuration, clip.Times[1]/sourceDuration, contentWidth, isSelected)
 		}
 		if clip.Source == index(m.clips, i+1).Source {
 			scrubBar = strings.ReplaceAll(scrubBar, "─", " ")
@@ -224,7 +225,7 @@ func (m model) View() string {
 	// Summary Section
 	totalDuration := 0.0
 	for _, clip := range m.clips {
-		totalDuration += clip.EndTime - clip.StartTime
+		totalDuration += clip.Times[1] - clip.Times[0]
 	}
 	s.WriteString(fmt.Sprintf("Total Duration: %0.1fs\n", totalDuration))
 
@@ -233,7 +234,7 @@ func (m model) View() string {
 
 	var timeline strings.Builder
 	for i, clip := range m.clips {
-		clipDuration := clip.EndTime - clip.StartTime
+		clipDuration := clip.Times[1] - clip.Times[0]
 		segmentWidth := int((clipDuration / totalDuration) * float64(timelineWidth-len(m.clips)))
 		if segmentWidth == 0 && clipDuration > 0 {
 			segmentWidth = 1
