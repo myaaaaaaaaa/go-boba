@@ -49,7 +49,8 @@ var (
 func initialModel() model {
 	clips := ClipList{
 		{startTime: 120.5, endTime: 145.6, srcVideo: "sotu_2024_raw.mp4", sourceDuration: 600.0},
-		{startTime: 15.0, endTime: 22.8, srcVideo: "interview_b_roll.mov", sourceDuration: 45.0},
+		{startTime: 150.5, endTime: 165.6, srcVideo: "sotu_2024_raw.mp4", sourceDuration: 600.0},
+		{startTime: 180.5, endTime: 200.1, srcVideo: "sotu_2024_raw.mp4", sourceDuration: 600.0},
 		{startTime: 340.1, endTime: 385.3, srcVideo: "gameplay_capture_01.mkv", sourceDuration: 1200.0},
 		{startTime: 0.0, endTime: 5.5, srcVideo: "outro_template.mp4", sourceDuration: 10.0},
 	}
@@ -153,6 +154,15 @@ func (m model) renderScrubBar(clip Clip, width int, isSelected bool) string {
 	return bar.String()
 }
 
+func index[T any](s []T, i int) T {
+	if 0 <= i && i < len(s) {
+		return s[i]
+	}
+
+	var zero T
+	return zero
+}
+
 func (m model) View() string {
 	var s strings.Builder
 
@@ -172,24 +182,28 @@ func (m model) View() string {
 		}
 
 		duration := clip.endTime - clip.startTime
-
-		// Left: Timestamps and duration
 		leftTop := textStyle.Render(fmt.Sprintf("%s - %s  (%0.1fs)", formatTime(clip.startTime), formatTime(clip.endTime), duration))
 
-		// Right: Filename and Source Duration
-		rightTop := textStyle.Render(clip.srcVideo)
-		rightBottom := textStyle.Render(formatTime(clip.sourceDuration))
+		metadata := clip.srcVideo + "  " + formatTime(clip.sourceDuration)
+		if clip.srcVideo == index(m.clips, i-1).srcVideo {
+			metadata = ""
+		}
+		rightTop := textStyle.Render(metadata)
 
-		contentWidth := max(m.size.Width-4, 40)
+		contentWidth := max(m.size.Width-2, 40)
 
 		topRow := leftTop + strings.Repeat(" ", max(0, contentWidth-lipgloss.Width(leftTop)-lipgloss.Width(rightTop))) + rightTop
-		bottomRow := strings.Repeat(" ", max(0, contentWidth-lipgloss.Width(rightBottom))) + rightBottom
 
 		scrubBar := m.renderScrubBar(clip, contentWidth, isSelected)
+		if clip.srcVideo == index(m.clips, i+1).srcVideo {
+			scrubBar = strings.ReplaceAll(scrubBar, "─", " ")
+		}
 
-		item := fmt.Sprintf("%s\n%s\n%s", topRow, bottomRow, scrubBar)
+		item := fmt.Sprintf("%s\n%s", topRow, scrubBar)
 		s.WriteString(containerStyle.Render(item) + "\n\n")
 	}
+
+	s.WriteString("\n\n\n")
 
 	// Summary Section
 	totalDuration := 0.0
