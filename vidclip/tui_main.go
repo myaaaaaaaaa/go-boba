@@ -41,9 +41,6 @@ var (
 	cyanStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("6"))              // Cyan header
 	errorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true) // Salmon/Red
 	blueStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))             // Active Blue
-
-	selectedStyle = lipgloss.NewStyle().Padding(0, 1)
-	normalStyle   = lipgloss.NewStyle().Padding(0, 1)
 )
 
 func initialModel() model {
@@ -171,7 +168,6 @@ func (m model) View() string {
 		isSelected := (i == m.cursor)
 		sourceDuration, _ := m.durationOf(clip.srcVideo)
 
-		containerStyle := normalStyle
 		textStyle := defaultStyle
 		if isSelected {
 			textStyle = textStyle.Bold(true)
@@ -188,7 +184,7 @@ func (m model) View() string {
 		}
 		rightTop := textStyle.Render(metadata)
 
-		contentWidth := max(m.size.Width-2, 40)
+		contentWidth := m.size.Width
 
 		topRow := leftTop + strings.Repeat(" ", max(0, contentWidth-lipgloss.Width(leftTop)-lipgloss.Width(rightTop))) + rightTop
 
@@ -200,8 +196,7 @@ func (m model) View() string {
 			scrubBar = strings.ReplaceAll(scrubBar, "─", " ")
 		}
 
-		item := fmt.Sprintf("%s\n%s", topRow, scrubBar)
-		s.WriteString(containerStyle.Render(item) + "\n\n")
+		s.WriteString(fmt.Sprintf("%s\n%s\n\n", topRow, scrubBar))
 	}
 
 	s.WriteString("\n\n\n")
@@ -244,7 +239,7 @@ func (m model) View() string {
 	return s.String()
 }
 
-func main() {
+func tui() {
 	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
