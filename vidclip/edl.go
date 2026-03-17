@@ -11,9 +11,9 @@ import (
 )
 
 type EditEntry struct {
-	Source   string
-	Start    float64
-	Duration float64
+	Source    string
+	StartTime float64
+	EndTime   float64
 }
 
 type EditList []EditEntry
@@ -50,9 +50,9 @@ func Parse(s string) (EditList, error) {
 		}
 
 		list = append(list, EditEntry{
-			Source:   filename,
-			Start:    start,
-			Duration: duration,
+			Source:    filename,
+			StartTime: start,
+			EndTime:   start + duration,
 		})
 	}
 
@@ -69,8 +69,8 @@ func (e EditList) Serialize() string {
 		}
 		lines = append(lines, fmt.Sprintf("%s,%g,%g",
 			filename,
-			entry.Start,
-			entry.Duration,
+			entry.StartTime,
+			entry.EndTime-entry.StartTime,
 		))
 	}
 
@@ -114,7 +114,7 @@ func (list EditList) Export() string {
 
 		// ffmpeg -ss <start> -i <filename> -t <duration> -c copy <i>.<ext>
 		fmt.Fprintf(&w, "ffmpeg -y -ss %v -i %s -t %v -c copy %s\n",
-			entry.Start, quoteBash(entry.Source), entry.Duration, quoteBash(segmentName))
+			entry.StartTime, quoteBash(entry.Source), entry.EndTime-entry.StartTime, quoteBash(segmentName))
 
 		// Add to concat file
 		// format: file 'path'

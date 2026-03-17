@@ -11,19 +11,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Clip represents a single video segment.
-type Clip struct {
-	Source    string
-	StartTime float64
-	EndTime   float64
-}
-
-// ClipList is the central data structure as requested.
-type ClipList []Clip
-
 // Model holds the state of our TUI application.
 type model struct {
-	clips  ClipList
+	clips  EditList
 	cursor int
 	size   tea.WindowSizeMsg
 
@@ -44,7 +34,7 @@ var (
 )
 
 func initialModel() model {
-	clips := ClipList{
+	clips := EditList{
 		{Source: "sotu_2024_raw.mp4", StartTime: 120.5, EndTime: 145.6},
 		{Source: "sotu_2024_raw.mp4", StartTime: 150.5, EndTime: 165.6},
 		{Source: "sotu_2024_raw.mp4", StartTime: 180.5, EndTime: 200.1},
@@ -102,7 +92,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case pathMsg:
-		m.clips = append(m.clips, Clip{EndTime: 1, Source: string(msg)})
+		m.clips = append(m.clips, EditEntry{EndTime: 1, Source: string(msg)})
 	case tea.WindowSizeMsg:
 		m.size = msg
 	}
