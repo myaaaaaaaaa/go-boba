@@ -16,8 +16,6 @@ type Clip struct {
 	startTime float64
 	endTime   float64
 	srcVideo  string
-	// sourceDuration is the total length of the source file, used for the scrub bar.
-	sourceDuration float64
 }
 
 // ClipList is the central data structure as requested.
@@ -31,6 +29,8 @@ type model struct {
 
 	filename string
 	err      string
+
+	durationOf func(filename string) (float64, error)
 }
 
 // Styles for the TUI components.
@@ -48,11 +48,11 @@ var (
 
 func initialModel() model {
 	clips := ClipList{
-		{startTime: 120.5, endTime: 145.6, srcVideo: "sotu_2024_raw.mp4", sourceDuration: 600.0},
-		{startTime: 150.5, endTime: 165.6, srcVideo: "sotu_2024_raw.mp4", sourceDuration: 600.0},
-		{startTime: 180.5, endTime: 200.1, srcVideo: "sotu_2024_raw.mp4", sourceDuration: 600.0},
-		{startTime: 340.1, endTime: 385.3, srcVideo: "gameplay_capture_01.mkv", sourceDuration: 1200.0},
-		{startTime: 0.0, endTime: 5.5, srcVideo: "outro_template.mp4", sourceDuration: 10.0},
+		{startTime: 120.5, endTime: 145.6, srcVideo: "sotu_2024_raw.mp4"},
+		{startTime: 150.5, endTime: 165.6, srcVideo: "sotu_2024_raw.mp4"},
+		{startTime: 180.5, endTime: 200.1, srcVideo: "sotu_2024_raw.mp4"},
+		{startTime: 340.1, endTime: 385.3, srcVideo: "gameplay_capture_01.mkv"},
+		{startTime: 0.0, endTime: 5.5, srcVideo: "outro.mp4"},
 	}
 
 	return model{
@@ -60,6 +60,10 @@ func initialModel() model {
 		cursor:   1,
 		filename: "project.edl*",
 		err:      "error: could not open hello.jpg: not a video file",
+
+		durationOf: func(filename string) (float64, error) {
+			return float64(len(filename) * 50), nil
+		},
 	}
 }
 
@@ -165,6 +169,7 @@ func (m model) View() string {
 	// Media Clip List
 	for i, clip := range m.clips {
 		isSelected := (i == m.cursor)
+		sourceDuration, _ := m.durationOf(clip.srcVideo)
 
 		containerStyle := normalStyle
 		textStyle := defaultStyle
@@ -174,10 +179,10 @@ func (m model) View() string {
 			textStyle = faintStyle
 		}
 
-		duration := clip.endTime - clip.startTime
-		leftTop := textStyle.Render(fmt.Sprintf("%s - %s  (%0.1fs)", formatTime(clip.startTime), formatTime(clip.endTime), duration))
+		clipDuration := clip.endTime - clip.startTime
+		leftTop := textStyle.Render(fmt.Sprintf("%s - %s  (%0.1fs)", formatTime(clip.startTime), formatTime(clip.endTime), clipDuration))
 
-		metadata := clip.srcVideo + "  " + formatTime(clip.sourceDuration)
+		metadata := clip.srcVideo + "  " + formatTime(sourceDuration)
 		if clip.srcVideo == index(m.clips, i-1).srcVideo {
 			metadata = ""
 		}
@@ -188,8 +193,8 @@ func (m model) View() string {
 		topRow := leftTop + strings.Repeat(" ", max(0, contentWidth-lipgloss.Width(leftTop)-lipgloss.Width(rightTop))) + rightTop
 
 		scrubBar := ""
-		if clip.sourceDuration != 0 {
-			scrubBar = m.renderScrubBar(clip.startTime/clip.sourceDuration, clip.endTime/clip.sourceDuration, contentWidth, isSelected)
+		if sourceDuration != 0 {
+			scrubBar = m.renderScrubBar(clip.startTime/sourceDuration, clip.endTime/sourceDuration, contentWidth, isSelected)
 		}
 		if clip.srcVideo == index(m.clips, i+1).srcVideo {
 			scrubBar = strings.ReplaceAll(scrubBar, "─", " ")
