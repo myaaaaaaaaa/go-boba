@@ -15,8 +15,9 @@ import (
 type model struct {
 	saved, clips EditList
 
-	cursor int
-	size   tea.WindowSizeMsg
+	cursor    int
+	cursorCol int
+	size      tea.WindowSizeMsg
 
 	filename string
 	err      string
@@ -73,6 +74,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cursor--
 		case "down", "j":
 			m.cursor++
+		case "left", "h":
+			m.cursorCol = 0
+		case "right", "l":
+			m.cursorCol = 1
 		case "alt+up", "K":
 			if m.cursor > 0 {
 				m.clips[m.cursor], m.clips[m.cursor-1] = m.clips[m.cursor-1], m.clips[m.cursor]
@@ -175,21 +180,29 @@ func (m model) View() string {
 		isSelected := (i == m.cursor)
 		sourceDuration, _ := m.durationOf(clip.Source)
 
-		textStyle := defaultStyle
+		startTimeStr := formatTime(clip.StartTime)
+		endTimeStr := formatTime(clip.EndTime)
 		if isSelected {
-			textStyle = textStyle.Bold(true)
+			if m.cursorCol == 0 {
+				startTimeStr = defaultStyle.Bold(true).Render(startTimeStr)
+				endTimeStr = faintStyle.Render(endTimeStr)
+			} else {
+				startTimeStr = faintStyle.Render(startTimeStr)
+				endTimeStr = defaultStyle.Bold(true).Render(endTimeStr)
+			}
 		} else {
-			textStyle = faintStyle
+			startTimeStr = faintStyle.Render(startTimeStr)
+			endTimeStr = faintStyle.Render(endTimeStr)
 		}
 
 		clipDuration := clip.EndTime - clip.StartTime
-		leftTop := textStyle.Render(fmt.Sprintf("%s - %s  (%0.1fs)", formatTime(clip.StartTime), formatTime(clip.EndTime), clipDuration))
+		leftTop := startTimeStr + faintStyle.Render(" - ") + endTimeStr + defaultStyle.Render(fmt.Sprintf("  (%0.1fs)", clipDuration))
 
 		metadata := clip.Source + "  " + formatTime(sourceDuration)
 		if clip.Source == index(m.clips, i-1).Source {
 			metadata = ""
 		}
-		rightTop := textStyle.Render(metadata)
+		rightTop := defaultStyle.Render(metadata)
 
 		contentWidth := m.size.Width
 
