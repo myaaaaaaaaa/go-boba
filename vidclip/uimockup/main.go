@@ -35,12 +35,12 @@ type model struct {
 
 // Styles for the TUI components.
 var (
-	defaultStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("238")) // Dark gray/black
-	faintStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("246")) // Medium gray for inactive
-	subtleStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("251")) // Light gray for scrub bg
-	cyanStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("6"))   // Cyan header
-	errorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("203")) // Salmon/Red
-	blueStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))  // Active Blue
+	defaultStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("238"))            // Dark gray/black
+	faintStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("246"))            // Medium gray for inactive
+	subtleStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("251"))            // Light gray for scrub bg
+	cyanStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("6"))              // Cyan header
+	errorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true) // Salmon/Red
+	blueStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))             // Active Blue
 
 	selectedStyle = lipgloss.NewStyle().Padding(0, 1)
 	normalStyle   = lipgloss.NewStyle().Padding(0, 1)
@@ -80,11 +80,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cursor--
 		case "down", "j":
 			m.cursor++
+		case "alt+up", "K":
+			if m.cursor > 0 {
+				m.clips[m.cursor], m.clips[m.cursor-1] = m.clips[m.cursor-1], m.clips[m.cursor]
+				m.cursor--
+			}
+		case "alt+down", "J":
+			if m.cursor < len(m.clips)-1 {
+				m.clips[m.cursor], m.clips[m.cursor+1] = m.clips[m.cursor+1], m.clips[m.cursor]
+				m.cursor++
+			}
 		case "d":
 			m.clips = slices.Insert(m.clips, m.cursor, m.clips[m.cursor])
 		case "del", "x":
-			m.clips = slices.Delete(m.clips, m.cursor, m.cursor+1)
-
+			if len(m.clips) <= 1 {
+				m.err = "Refusing to delete last clip"
+			} else {
+				m.clips = slices.Delete(m.clips, m.cursor, m.cursor+1)
+			}
 		}
 	case pathMsg:
 		m.clips = append(m.clips, Clip{endTime: 1, srcVideo: string(msg)})
