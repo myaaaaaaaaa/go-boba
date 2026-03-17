@@ -24,12 +24,12 @@ type ClipList []Clip
 
 // Model holds the state of our TUI application.
 type model struct {
-	clips    ClipList
-	cursor   int
-	width    int
-	height   int
-	err      string
+	clips  ClipList
+	cursor int
+	size   tea.WindowSizeMsg
+
 	filename string
+	err      string
 }
 
 // Styles for the TUI components.
@@ -46,7 +46,6 @@ var (
 )
 
 func initialModel() model {
-	// Mock data exactly matching vidcutter.png / vidcutter3.md
 	clips := ClipList{
 		{startTime: 120.5, endTime: 145.6, srcVideo: "sotu_2024_raw.mp4", sourceDuration: 600.0},
 		{startTime: 15.0, endTime: 22.8, srcVideo: "interview_b_roll.mov", sourceDuration: 45.0},
@@ -56,7 +55,7 @@ func initialModel() model {
 
 	return model{
 		clips:    clips,
-		cursor:   3, // Select the fourth clip to match mockup
+		cursor:   1,
 		filename: "project.edl*",
 		err:      "error: could not open hello.jpg: not a video file",
 	}
@@ -80,10 +79,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.cursor < len(m.clips)-1 {
 				m.cursor++
 			}
+		case "n":
+			return newFileModel(m.size, m)
+
 		}
+	case pathMsg:
+		m.clips = append(m.clips, Clip{srcVideo: string(msg)})
 	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
+		m.size = msg
 	}
 	return m, nil
 }
@@ -133,10 +136,6 @@ func (m model) renderScrubBar(clip Clip, width int, isSelected bool) string {
 }
 
 func (m model) View() string {
-	if m.width == 0 {
-		return "Initializing..."
-	}
-
 	var s strings.Builder
 
 	// Header Bar
@@ -163,7 +162,7 @@ func (m model) View() string {
 		rightTop := textStyle.Render(clip.srcVideo)
 		rightBottom := textStyle.Render(formatTime(clip.sourceDuration))
 
-		contentWidth := max(m.width-4, 40)
+		contentWidth := max(m.size.Width-4, 40)
 
 		topRow := leftTop + strings.Repeat(" ", max(0, contentWidth-lipgloss.Width(leftTop)-lipgloss.Width(rightTop))) + rightTop
 		bottomRow := strings.Repeat(" ", max(0, contentWidth-lipgloss.Width(rightBottom))) + rightBottom
@@ -182,7 +181,7 @@ func (m model) View() string {
 	s.WriteString(fmt.Sprintf("Total Duration: %0.1fs\n", totalDuration))
 
 	// Assembled Timeline Bar
-	timelineWidth := max(m.width-4, 40)
+	timelineWidth := max(m.size.Width-4, 40)
 
 	var timeline strings.Builder
 	for i, clip := range m.clips {
