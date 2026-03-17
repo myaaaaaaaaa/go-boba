@@ -112,9 +112,9 @@ func (list EditList) Export() string {
 		}
 		segmentName := fmt.Sprintf("edl_segments/part_%04d%s", i, ext)
 
-		// ffmpeg -ss <start> -i <filename> -t <duration> -c copy <i>.<ext>
-		fmt.Fprintf(&w, "ffmpeg -y -ss %v -i %s -t %v -c copy %s\n",
-			entry.StartTime, quoteBash(entry.Source), entry.EndTime-entry.StartTime, quoteBash(segmentName))
+		// ffmpeg -ss <start> -to <end> -i <filename> -c copy <i>.<ext>
+		fmt.Fprintf(&w, "ffmpeg -y -ss %v -to %v -i %s -c copy %s\n",
+			entry.StartTime, entry.EndTime, quoteBash(entry.Source), quoteBash(segmentName))
 
 		// Add to concat file
 		// format: file 'path'
