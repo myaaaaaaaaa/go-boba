@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"slices"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -69,25 +70,29 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "esc", "ctrl+c", "q":
 			return m, tea.Quit
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case "down", "j":
-			if m.cursor < len(m.clips)-1 {
-				m.cursor++
-			}
+
 		case "n":
 			return newFileModel(m.size, m)
 
+		case "up", "k":
+			m.cursor--
+		case "down", "j":
+			m.cursor++
+		case "d":
+			m.clips = slices.Insert(m.clips, m.cursor, m.clips[m.cursor])
+		case "del", "x":
+			m.clips = slices.Delete(m.clips, m.cursor, m.cursor+1)
+
 		}
 	case pathMsg:
-		m.clips = append(m.clips, Clip{srcVideo: string(msg)})
+		m.clips = append(m.clips, Clip{endTime: 1, srcVideo: string(msg)})
 	case tea.WindowSizeMsg:
 		m.size = msg
 	}
+	m.cursor = min(m.cursor, len(m.clips)-1)
+	m.cursor = max(m.cursor, 0)
 	return m, nil
 }
 
