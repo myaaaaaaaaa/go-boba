@@ -13,7 +13,8 @@ import (
 
 // Model holds the state of our TUI application.
 type model struct {
-	clips  EditList
+	saved, clips EditList
+
 	cursor int
 	size   tea.WindowSizeMsg
 
@@ -45,7 +46,7 @@ func initialModel() model {
 	return model{
 		clips:    clips,
 		cursor:   1,
-		filename: "project.edl*",
+		filename: "/tmp/project.edl",
 		err:      "error: could not open hello.jpg: not a video file",
 
 		durationOf: memoize12(func(filename string) (float64, error) {
@@ -89,6 +90,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.err = "Refusing to delete last clip"
 			} else {
 				m.clips = slices.Delete(m.clips, m.cursor, m.cursor+1)
+			}
+		case "ctrl+s":
+			data := m.clips.Serialize()
+			err := os.WriteFile(m.filename, []byte(data), 0644)
+			if err != nil {
+				m.err = "save failed: " + err.Error()
+			} else {
+				m.saved = slices.Clone(m.clips)
 			}
 		}
 	case pathMsg:
@@ -151,7 +160,15 @@ func (m model) View() string {
 	var s strings.Builder
 
 	// Header Bar
-	s.WriteString(cyanStyle.Render(m.filename) + "\n\n")
+	{
+		style := cyanStyle
+		filename := m.filename
+		if !slices.Equal(m.saved, m.clips) {
+			filename += " *"
+			style = style.Bold(true)
+		}
+		s.WriteString(style.Render(filename) + "\n\n")
+	}
 
 	// Media Clip List
 	for i, clip := range m.clips {
