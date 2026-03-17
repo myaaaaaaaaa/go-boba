@@ -116,14 +116,7 @@ func formatTime(seconds float64) string {
 	return fmt.Sprintf("%02d:%04.1f", minutes, secs)
 }
 
-func (m model) renderScrubBar(clip Clip, width int, isSelected bool) string {
-	if clip.sourceDuration == 0 {
-		return strings.Repeat(" ", width)
-	}
-
-	startPct := clip.startTime / clip.sourceDuration
-	endPct := clip.endTime / clip.sourceDuration
-
+func (m model) renderScrubBar(startPct, endPct float64, width int, isSelected bool) string {
 	barWidth := width
 	startIdx := int(startPct * float64(barWidth))
 	endIdx := int(endPct * float64(barWidth))
@@ -194,7 +187,10 @@ func (m model) View() string {
 
 		topRow := leftTop + strings.Repeat(" ", max(0, contentWidth-lipgloss.Width(leftTop)-lipgloss.Width(rightTop))) + rightTop
 
-		scrubBar := m.renderScrubBar(clip, contentWidth, isSelected)
+		scrubBar := ""
+		if clip.sourceDuration != 0 {
+			scrubBar = m.renderScrubBar(clip.startTime/clip.sourceDuration, clip.endTime/clip.sourceDuration, contentWidth, isSelected)
+		}
 		if clip.srcVideo == index(m.clips, i+1).srcVideo {
 			scrubBar = strings.ReplaceAll(scrubBar, "─", " ")
 		}
