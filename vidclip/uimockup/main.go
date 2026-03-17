@@ -61,9 +61,9 @@ func initialModel() model {
 		filename: "project.edl*",
 		err:      "error: could not open hello.jpg: not a video file",
 
-		durationOf: func(filename string) (float64, error) {
+		durationOf: memoize12(func(filename string) (float64, error) {
 			return float64(len(filename) * 50), nil
-		},
+		}),
 	}
 }
 
