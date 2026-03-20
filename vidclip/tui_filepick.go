@@ -51,11 +51,7 @@ func (m fileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Did the user select a file?
 	if didSelect, path := m.filepicker.DidSelectFile(msg); didSelect {
-		// Get the path of the selected file.
-		ext := filepath.Ext(path)
-		mimeType := mime.TypeByExtension(ext)
-
-		if strings.HasPrefix(mimeType, "video/") {
+		if isVideo(path) {
 			return m.callback.Update(pathMsg(path))
 		}
 
@@ -63,6 +59,12 @@ func (m fileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, cmd
+}
+
+func isVideo(path string) bool {
+	ext := filepath.Ext(path)
+	mimeType := mime.TypeByExtension(ext)
+	return strings.HasPrefix(mimeType, "video/")
 }
 
 func (m fileModel) View() string {

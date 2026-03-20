@@ -24,8 +24,15 @@ func tryPop(args *[]string, format string, a ...any) string {
 func main() {
 	args := os.Args
 	if len(args) < 2 {
-		tui()
+		tui("")
 		return
+	}
+	{
+		file := args[len(args)-1]
+		if _, err := os.Stat(file); err == nil {
+			tui(file)
+			return
+		}
 	}
 	exeName := tryPop(&args, "")
 	subcmd := tryPop(&args, "")

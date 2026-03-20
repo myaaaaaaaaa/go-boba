@@ -260,8 +260,21 @@ func (m model) View() string {
 	return s.String()
 }
 
-func tui() {
-	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
+func tui(file string) {
+	m := initialModel()
+
+	if isVideo(file) {
+		m.clips = EditList{{Source: file}}
+	} else if strings.HasSuffix(file, ".edl") {
+		data, err := os.ReadFile(file)
+		failIf(err != nil, "failed to read %s: %v", file, err)
+
+		m.filename = file
+		m.clips, err = Parse(string(data))
+		failIf(err != nil, "invalid .edl file: %s: %v", file, err)
+	}
+
+	p := tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
