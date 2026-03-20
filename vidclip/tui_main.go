@@ -38,30 +38,6 @@ var (
 	blueStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))             // Active Blue
 )
 
-func initialModel() model {
-	clips := EditList{
-		{Source: "sotu_2024_raw.mp4", Times: [2]float64{120.5, 145.6}},
-		{Source: "sotu_2024_raw.mp4", Times: [2]float64{150.5, 165.6}},
-		{Source: "sotu_2024_raw.mp4", Times: [2]float64{180.5, 200.1}},
-		{Source: "gameplay_capture_01.mkv", Times: [2]float64{340.1, 385.3}},
-		{Source: "outro.mp4", Times: [2]float64{0.0, 5.5}},
-	}
-
-	return model{
-		clips:    clips,
-		cursor:   1,
-		filename: "/tmp/project.edl",
-		err:      "error: could not open hello.jpg: not a video file",
-
-		durationOf: memoize12(func(filename string) (float64, error) {
-			return float64(len(filename) * 50), nil
-		}),
-		changeTime: func(video string, t *float64) {
-			*t += rand.Float64()*4 - 2
-		},
-	}
-}
-
 func (m model) Init() tea.Cmd {
 	return nil
 }
@@ -267,7 +243,11 @@ func (m model) View() string {
 }
 
 func tui(file string) {
-	m := initialModel()
+	m := model{
+		filename:   "/tmp/project.edl",
+		durationOf: memoize12(videoDuration),
+		changeTime: mpvChooseTime,
+	}
 
 	if isVideo(file) {
 		m.clips = EditList{{Source: file, Times: [2]float64{0, 1}}}
@@ -278,6 +258,25 @@ func tui(file string) {
 		m.filename = file
 		m.clips, err = Parse(string(data))
 		failIf(err != nil, "invalid .edl file: %s: %v", file, err)
+	} else {
+		// dummy data
+		m.clips = EditList{
+			{Source: "sotu_2024_raw.mp4", Times: [2]float64{120.5, 145.6}},
+			{Source: "sotu_2024_raw.mp4", Times: [2]float64{150.5, 165.6}},
+			{Source: "sotu_2024_raw.mp4", Times: [2]float64{180.5, 200.1}},
+			{Source: "gameplay_capture_01.mkv", Times: [2]float64{340.1, 385.3}},
+			{Source: "outro.mp4", Times: [2]float64{0.0, 5.5}},
+		}
+
+		m.cursor = 1
+		m.err = "error: could not open hello.jpg: not a video file"
+
+		m.durationOf = memoize12(func(filename string) (float64, error) {
+			return float64(len(filename) * 50), nil
+		})
+		m.changeTime = func(video string, t *float64) {
+			*t += rand.Float64()*4 - 2
+		}
 	}
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
