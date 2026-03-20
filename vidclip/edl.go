@@ -93,6 +93,17 @@ func quoteBash(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
 
+func (e EditList) Absolute(baseDir string) EditList {
+	newList := make(EditList, len(e))
+	for i, entry := range e {
+		if !filepath.IsAbs(entry.Source) {
+			entry.Source = filepath.Join(baseDir, entry.Source)
+		}
+		newList[i] = entry
+	}
+	return newList
+}
+
 func (list EditList) Export() string {
 	var w strings.Builder
 	fmt.Fprintln(&w, "#!/bin/bash")

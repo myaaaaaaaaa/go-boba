@@ -73,6 +73,40 @@ func TestRoundtrip(t *testing.T) {
 	}.validate()
 }
 
+func TestAbsolute(t *testing.T) {
+	list := EditList{
+		{Source: "f1.mkv", Times: [2]float64{10, 20}},
+		{Source: "/already/abs.mkv", Times: [2]float64{10.5, 1.5}},
+		{Source: "dir/f2.mp4", Times: [2]float64{0, 5}},
+	}
+
+	got := list.Absolute("/base")
+
+	want := EditList{
+		{Source: "/base/f1.mkv", Times: [2]float64{10, 20}},
+		{Source: "/already/abs.mkv", Times: [2]float64{10.5, 1.5}},
+		{Source: "/base/dir/f2.mp4", Times: [2]float64{0, 5}},
+	}
+
+	if len(got) != len(want) {
+		t.Fatalf("Got length %d, want %d", len(got), len(want))
+	}
+
+	for i := range got {
+		if got[i].Source != want[i].Source {
+			t.Errorf("At index %d, got source %q, want %q", i, got[i].Source, want[i].Source)
+		}
+		if got[i].Times != want[i].Times {
+			t.Errorf("At index %d, got times %v, want %v", i, got[i].Times, want[i].Times)
+		}
+	}
+
+	// Verify original list wasn't modified
+	if list[0].Source != "f1.mkv" {
+		t.Errorf("Original list was modified! list[0].Source = %q", list[0].Source)
+	}
+}
+
 func TestExportGolden(t *testing.T) {
 	list, err := Parse(lines(
 		`# mpv EDL v0`,
