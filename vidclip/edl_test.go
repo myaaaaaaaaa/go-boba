@@ -84,7 +84,6 @@ func TestAbsolute(t *testing.T) {
 		t.Fatalf("Parse failed: %v", err)
 	}
 
-	got := list.Absolute("/base").Serialize()
 	want := lines(
 		`# mpv EDL v0`,
 		`/base/f1.mkv,10,20`,
@@ -93,13 +92,12 @@ func TestAbsolute(t *testing.T) {
 		``,
 	)
 
-	if got != want {
-		t.Errorf("Absolute got %v, expected %v", got, want)
-	}
-
-	// Verify original list wasn't modified
-	if list[0].Source != "f1.mkv" {
-		t.Errorf("Original list was modified! list[0].Source = %q", list[0].Source)
+	for range 3 {
+		list.Absolute("/base")
+		got := list.Serialize()
+		if got != want {
+			t.Errorf("Absolute got %v, expected %v", got, want)
+		}
 	}
 }
 

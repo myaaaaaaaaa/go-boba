@@ -94,15 +94,13 @@ func quoteBash(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
 
-func (e EditList) Absolute(baseDir string) EditList {
-	newList := make(EditList, len(e))
-	for i, entry := range e {
+func (e EditList) Absolute(baseDir string) {
+	for entry := range e {
+		entry := &e[entry]
 		if !path.IsAbs(entry.Source) {
 			entry.Source = path.Join(baseDir, entry.Source)
 		}
-		newList[i] = entry
 	}
-	return newList
 }
 
 func (list EditList) Export() string {
