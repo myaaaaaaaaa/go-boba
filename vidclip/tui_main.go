@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand/v2"
 	"os"
+	"os/exec"
 	"slices"
 	"strings"
 
@@ -109,6 +110,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.saved = slices.Clone(m.clips)
 			}
+		case " ":
+			const file = "/tmp/preview.edl"
+			data := m.clips.Serialize()
+			os.WriteFile(file, []byte(data), 0644)
+			go exec.Command("mpv", file).Run()
 		case "enter":
 			clip := &m.clips[m.cursor]
 			m.changeTime(clip.Source, &clip.Times[m.cursorCol])
@@ -264,7 +270,7 @@ func tui(file string) {
 	m := initialModel()
 
 	if isVideo(file) {
-		m.clips = EditList{{Source: file}}
+		m.clips = EditList{{Source: file, Times: [2]float64{0, 1}}}
 	} else if strings.HasSuffix(file, ".edl") {
 		data, err := os.ReadFile(file)
 		failIf(err != nil, "failed to read %s: %v", file, err)
