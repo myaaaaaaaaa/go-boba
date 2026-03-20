@@ -73,6 +73,36 @@ func TestRoundtrip(t *testing.T) {
 	}.validate()
 }
 
+func TestAbsolute(t *testing.T) {
+	list, err := Parse(lines(
+		`# mpv EDL v0`,
+		`f1.mkv,10,20`,
+		`/already/abs.mkv,10.5,1.5`,
+		`dir/f2.mp4,0,5`,
+	))
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+
+	got := list.Absolute("/base").Serialize()
+	want := lines(
+		`# mpv EDL v0`,
+		`/base/f1.mkv,10,20`,
+		`/already/abs.mkv,10.5,1.5`,
+		`/base/dir/f2.mp4,0,5`,
+		``,
+	)
+
+	if got != want {
+		t.Errorf("Absolute got %v, expected %v", got, want)
+	}
+
+	// Verify original list wasn't modified
+	if list[0].Source != "f1.mkv" {
+		t.Errorf("Original list was modified! list[0].Source = %q", list[0].Source)
+	}
+}
+
 func TestExportGolden(t *testing.T) {
 	list, err := Parse(lines(
 		`# mpv EDL v0`,

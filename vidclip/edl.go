@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -91,6 +92,17 @@ func (e EditList) validate() {
 
 func quoteBash(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
+}
+
+func (e EditList) Absolute(baseDir string) EditList {
+	newList := make(EditList, len(e))
+	for i, entry := range e {
+		if !path.IsAbs(entry.Source) {
+			entry.Source = path.Join(baseDir, entry.Source)
+		}
+		newList[i] = entry
+	}
+	return newList
 }
 
 func (list EditList) Export() string {
