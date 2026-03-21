@@ -6,6 +6,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -88,8 +89,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case " ":
 			const file = "/tmp/preview.edl"
-			data := m.clips.Serialize()
-			os.WriteFile(file, []byte(data), 0644)
+
+			clips := slices.Clone(m.clips)
+			clips.Absolute(filepath.Dir(m.filename))
+
+			os.WriteFile(file, []byte(clips.Serialize()), 0644)
 			go exec.Command("mpv", file).Run()
 		case "enter":
 			clip := &m.clips[m.cursor]
@@ -278,6 +282,11 @@ func tui(file string) {
 			*t += rand.Float64()*4 - 2
 		}
 	}
+
+	abs, err := filepath.Abs(m.filename)
+	failIf(err != nil, "couldn't get absolute path of %s: %v", m.filename, err)
+	m.filename = abs
+	os.Chdir(filepath.Dir(abs))
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
