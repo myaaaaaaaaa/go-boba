@@ -109,8 +109,9 @@ func (list EditList) Export() string {
 	fmt.Fprintln(&w, "set -e")
 	fmt.Fprintln(&w)
 
-	fmt.Fprintln(&w, "rm -rf edl_segments")
-	fmt.Fprintln(&w, "mkdir -p edl_segments")
+	fmt.Fprintln(&w, "OUTDIR=${1:-render}")
+	fmt.Fprintln(&w, "rm -rf   $OUTDIR")
+	fmt.Fprintln(&w, "mkdir -p $OUTDIR")
 	fmt.Fprintln(&w)
 
 	var doConcat []string
@@ -123,11 +124,11 @@ func (list EditList) Export() string {
 		segmentName := fmt.Sprintf("part_%04d%s", i, ext)
 
 		// ffmpeg -ss <start> -to <end> -i <filename> -c copy <i>.<ext>
-		fmt.Fprintf(&w, "ffmpeg -y -ss %v -to %v -i %s -c copy %s\n",
+		fmt.Fprintf(&w, "ffmpeg -y -ss %v -to %v -i %s -c copy $OUTDIR/%s\n",
 			entry.Times[0],
 			entry.Times[1],
 			quoteBash(entry.Source),
-			quoteBash("edl_segments/"+segmentName),
+			quoteBash(segmentName),
 		)
 
 		doConcat = append(doConcat,
@@ -141,17 +142,15 @@ func (list EditList) Export() string {
 		)
 	}
 
-	concatFile := "edl_segments/concat.txt"
+	concatFile := "$OUTDIR/concat.txt"
 	fmt.Fprintln(&w, "cat <<_EOF >"+concatFile)
 	fmt.Fprintln(&w, strings.Join(doConcat, "\n"))
 	fmt.Fprintln(&w, "_EOF")
 	fmt.Fprintln(&w)
 
-	fmt.Fprintf(&w, "ffmpeg -y -f concat -safe 0 -i %s -c copy \"$1\"\n", quoteBash(concatFile))
+	fmt.Fprintf(&w, "ffmpeg -y -f concat -safe 0 -i %s -c copy $OUTDIR/final.mkv", concatFile)
 	fmt.Fprintln(&w)
-
-	fmt.Fprintln(&w, "# echo \"Cleaning up...\"")
-	fmt.Fprintf(&w, "# rm -rf edl_segments %s\n", quoteBash(concatFile))
+	fmt.Fprintln(&w)
 
 	return w.String()
 }
