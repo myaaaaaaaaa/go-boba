@@ -17,7 +17,7 @@ func TestParse(t *testing.T) {
 		``,
 		``,
 		`f1.mkv,10,20`,
-		`f2.mkv,10.5,1.5`,
+		`f2.mkv,10.125,1.5`,
 		``,
 		`f1.mkv,40,10`,
 	))
@@ -31,7 +31,7 @@ func TestParse(t *testing.T) {
 	want := lines(
 		`# mpv EDL v0`,
 		`f1.mkv,10,20`,
-		`f2.mkv,10.5,1.5`,
+		`f2.mkv,10.125,1.5`,
 		`f1.mkv,40,10`,
 		``,
 	)
