@@ -102,6 +102,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			clip := &m.clips[m.cursor]
 			m.changeTime(clip.Source, &clip.Times[m.cursorCol])
+			if clip.Times[0] > clip.Times[1] {
+				clip.Times[0], clip.Times[1] = clip.Times[1], clip.Times[0]
+			}
 		}
 	case pathMsg:
 		m.clips = append(m.clips, EditEntry{Source: string(msg), Times: [2]float64{0, 1}})
@@ -225,10 +228,14 @@ func (m model) View() string {
 	var timeline strings.Builder
 	for i, clip := range m.clips {
 		clipDuration := clip.Times[1] - clip.Times[0]
-		segmentWidth := int((clipDuration / totalDuration) * float64(timelineWidth-len(m.clips)))
-		if segmentWidth == 0 && clipDuration > 0 {
+		segmentWidth := 0
+		if totalDuration > 0 {
+			segmentWidth = int((clipDuration / totalDuration) * float64(timelineWidth-len(m.clips)))
+		}
+		if segmentWidth <= 0 && clipDuration > 0 {
 			segmentWidth = 1
 		}
+		segmentWidth = max(0, segmentWidth)
 
 		char := "─"
 		style := subtleStyle
