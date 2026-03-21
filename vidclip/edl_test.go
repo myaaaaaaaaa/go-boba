@@ -119,7 +119,7 @@ func TestExportGolden(t *testing.T) {
 	hash := sha256.Sum256([]byte(scriptContent))
 	gotHash := hex.EncodeToString(hash[:])
 
-	wantHash := "21c17d2fc93de2389cf9e104a747c86dc2c6faa79ac4e84d74ffa2a094d098c5"
+	wantHash := "a1859274d6d47fe3d3ffd79f2f45c4ca9436fe26fba0c544f4207480b7454006"
 
 	if gotHash != wantHash {
 		t.Errorf("EditList.Export output hash changed.\nGot:  %s\nWant: %s\nOutput:\n%s", gotHash, wantHash, scriptContent)

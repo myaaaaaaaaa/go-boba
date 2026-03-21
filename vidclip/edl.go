@@ -107,36 +107,49 @@ func (list EditList) Export() string {
 	var w strings.Builder
 	fmt.Fprintln(&w, "#!/bin/bash")
 	fmt.Fprintln(&w, "set -e")
-	fmt.Fprintln(&w, "")
-	fmt.Fprintln(&w, "mkdir -p edl_segments")
+	fmt.Fprintln(&w)
 
-	concatFile := "edl_concat.txt"
-	fmt.Fprintf(&w, "rm -f %s\n", quoteBash(concatFile))
+	fmt.Fprintln(&w, "rm -rf edl_segments")
+	fmt.Fprintln(&w, "mkdir -p edl_segments")
+	fmt.Fprintln(&w)
+
+	var doConcat []string
 
 	for i, entry := range list {
 		ext := filepath.Ext(entry.Source)
 		if ext == "" {
 			ext = ".mkv"
 		}
-		segmentName := fmt.Sprintf("edl_segments/part_%04d%s", i, ext)
+		segmentName := fmt.Sprintf("part_%04d%s", i, ext)
 
 		// ffmpeg -ss <start> -to <end> -i <filename> -c copy <i>.<ext>
 		fmt.Fprintf(&w, "ffmpeg -y -ss %v -to %v -i %s -c copy %s\n",
-			entry.Times[0], entry.Times[1], quoteBash(entry.Source), quoteBash(segmentName))
+			entry.Times[0],
+			entry.Times[1],
+			quoteBash(entry.Source),
+			quoteBash("edl_segments/"+segmentName),
+		)
 
-		// Add to concat file
-		// format: file 'path'
-		// We use double quotes for echo to allow expansion, but inside we want literal single quotes.
-		// We use quoteBash(segmentName) which properly escapes single quotes and wraps the string in single quotes.
-		// E.g. segmentName="foo'bar" -> "'foo'\''bar'"
-		// echo "file 'foo'\''bar'" prints file 'foo'\''bar' which is what ffmpeg expects.
-		fmt.Fprintf(&w, "echo \"file %s\" >> %s\n", quoteBash(segmentName), quoteBash(concatFile))
+		doConcat = append(doConcat,
+			// Add to concat file
+			// format: file 'path'
+			// We use quoteBash(segmentName) which properly escapes single quotes and wraps the string in single quotes.
+			// E.g. segmentName="foo'bar" -> file 'foo'\''bar' which is what ffmpeg expects.
+			fmt.Sprintf("file %s",
+				quoteBash(segmentName),
+			),
+		)
 	}
 
-	fmt.Fprintln(&w, "")
-	fmt.Fprintf(&w, "ffmpeg -y -f concat -safe 0 -i %s -c copy \"$1\"\n", quoteBash(concatFile))
+	concatFile := "edl_segments/concat.txt"
+	fmt.Fprintln(&w, "cat <<_EOF >"+concatFile)
+	fmt.Fprintln(&w, strings.Join(doConcat, "\n"))
+	fmt.Fprintln(&w, "_EOF")
+	fmt.Fprintln(&w)
 
-	fmt.Fprintln(&w, "")
+	fmt.Fprintf(&w, "ffmpeg -y -f concat -safe 0 -i %s -c copy \"$1\"\n", quoteBash(concatFile))
+	fmt.Fprintln(&w)
+
 	fmt.Fprintln(&w, "# echo \"Cleaning up...\"")
 	fmt.Fprintf(&w, "# rm -rf edl_segments %s\n", quoteBash(concatFile))
 
