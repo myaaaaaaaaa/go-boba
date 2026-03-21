@@ -287,6 +287,8 @@ func tui(file string) {
 		}
 	}
 
+	m.saved = slices.Clone(m.clips)
+
 	abs, err := filepath.Abs(m.filename)
 	failIf(err != nil, "couldn't get absolute path of %s: %v", m.filename, err)
 	m.filename = abs

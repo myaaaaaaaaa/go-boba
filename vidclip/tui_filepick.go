@@ -22,7 +22,7 @@ type fileModel struct {
 func newFileModel(size tea.WindowSizeMsg, callback tea.Model) (tea.Model, tea.Cmd) {
 	fp := filepicker.New()
 	//fp.CurrentDirectory, _ = os.UserHomeDir()
-	fp.CurrentDirectory = "/tmp"
+	//fp.CurrentDirectory = "/tmp"
 	fp, _ = fp.Update(size)
 
 	fm := fileModel{
@@ -64,7 +64,9 @@ func (m fileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func isVideo(path string) bool {
 	ext := filepath.Ext(path)
 	mimeType := mime.TypeByExtension(ext)
-	return strings.HasPrefix(mimeType, "video/")
+
+	mimeType, _, _ = strings.Cut(mimeType, "/")
+	return mimeType == "video" || mimeType == "audio"
 }
 
 func (m fileModel) View() string {
