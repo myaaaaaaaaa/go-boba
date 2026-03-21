@@ -88,11 +88,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.saved = slices.Clone(m.clips)
 			}
 		case " ":
-			const file = "/tmp/preview.edl"
+			const (
+				file   = "/tmp/preview.edl"
+				export = "/tmp/preview.render.sh"
+			)
 
 			clips := slices.Clone(m.clips)
 			clips.Absolute(filepath.Dir(m.filename))
 
+			os.WriteFile(export, []byte(clips.Export()), 0644)
 			os.WriteFile(file, []byte(clips.Serialize()), 0644)
 			go exec.Command("mpv", file).Run()
 		case "enter":
