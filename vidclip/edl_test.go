@@ -125,3 +125,32 @@ func TestExportGolden(t *testing.T) {
 		t.Errorf("EditList.Export output hash changed.\nGot:  %s\nWant: %s\nOutput:\n%s", gotHash, wantHash, scriptContent)
 	}
 }
+
+func TestExportExt(t *testing.T) {
+	tests := []struct {
+		name     string
+		sources  []string
+		expected string
+	}{
+		{"Empty", []string{}, ".mkv"},
+		{"SameExtMKV", []string{"f1.mkv", "f2.mkv"}, ".mkv"},
+		{"SameExtMP4", []string{"f1.mp4", "f2.mp4"}, ".mp4"},
+		{"DifferentExt", []string{"f1.webm", "f2.mp4"}, ".mkv"},
+		{"NoExt", []string{"f1", "f2"}, ".mkv"},
+		{"MixedNoExt", []string{"f1.mkv", "f2"}, ".mkv"},
+		{"MixedCaseExt", []string{"f1.webm", "f2.WEBM"}, ".webm"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var list EditList
+			for _, src := range tt.sources {
+				list = append(list, EditEntry{Source: src})
+			}
+			got := list.ExportExt()
+			if got != tt.expected {
+				t.Errorf("ExportExt() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}

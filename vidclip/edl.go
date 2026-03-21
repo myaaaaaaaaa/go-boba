@@ -103,6 +103,23 @@ func (e EditList) Absolute(baseDir string) {
 	}
 }
 
+func (list EditList) ExportExt() string {
+	rt := map[string]bool{}
+	for _, entry := range list {
+		ext := strings.ToLower(filepath.Ext(entry.Source))
+		if ext == "" {
+			continue
+		}
+		rt[ext] = true
+	}
+	if len(rt) == 1 {
+		for k := range rt {
+			return k
+		}
+	}
+	return ".mkv"
+}
+
 func (list EditList) Export() string {
 	var w strings.Builder
 	fmt.Fprintln(&w, "#!/bin/bash")
@@ -148,7 +165,7 @@ func (list EditList) Export() string {
 	fmt.Fprintln(&w, "_EOF")
 	fmt.Fprintln(&w)
 
-	fmt.Fprintf(&w, "ffmpeg -y -f concat -safe 0 -i %s -c copy $OUTDIR/final.mkv", concatFile)
+	fmt.Fprintf(&w, "ffmpeg -y -f concat -safe 0 -i %s -c copy $OUTDIR/final%s", concatFile, list.ExportExt())
 	fmt.Fprintln(&w)
 	fmt.Fprintln(&w)
 
