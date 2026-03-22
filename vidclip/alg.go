@@ -1,5 +1,7 @@
 package main
 
+import "math"
+
 func memoize12[A1 comparable, R1, R2 any](f func(A1) (R1, R2)) func(A1) (R1, R2) {
 	cache := make(map[A1]func() (R1, R2))
 
@@ -68,13 +70,10 @@ func splitTimeline(width int, durations []float64) []int {
 		return segmentWidths
 	}
 
-	var accumulatedFloat float64
 	var accumulatedInt int
 
 	for i, d := range durations {
-		accumulatedFloat += (d / totalDuration) * float64(width)
-		expected := int(accumulatedFloat + 0.5)
-		w := expected - accumulatedInt
+		w := int(math.Ceil(float64(width) * d / totalDuration))
 		w = max(w, 1)
 		segmentWidths[i] = w
 		accumulatedInt += w
@@ -89,27 +88,9 @@ func splitTimeline(width int, durations []float64) []int {
 				maxIdx = i
 			}
 		}
-		if maxVal <= 0 {
-			break
-		}
+
 		segmentWidths[maxIdx]--
 		accumulatedInt--
-	}
-
-	for accumulatedInt < width {
-		maxIdx := -1
-		maxVal := -1
-		for i, w := range segmentWidths {
-			if w > maxVal {
-				maxVal = w
-				maxIdx = i
-			}
-		}
-		if maxIdx == -1 {
-			maxIdx = 0
-		}
-		segmentWidths[maxIdx]++
-		accumulatedInt++
 	}
 
 	return segmentWidths
