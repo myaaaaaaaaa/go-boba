@@ -177,7 +177,7 @@ func (m model) View() string {
 			if !isSelected {
 				fgStyle = faintStyle
 			}
-			left, center, right := splitPct(
+			left, center, right := splitScrub(
 				contentWidth,
 				clip.Times[0]/sourceDuration,
 				clip.Times[1]/sourceDuration,

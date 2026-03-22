@@ -58,7 +58,7 @@ func TestMemoize12_Property(t *testing.T) {
 	}
 }
 
-func TestSplitPct_Property(t *testing.T) {
+func TestSplitScrub_Property(t *testing.T) {
 	r := rand.New(rand.NewSource(4))
 
 	float01 := func() float64 {
@@ -73,22 +73,22 @@ func TestSplitPct_Property(t *testing.T) {
 	}
 
 	for range 10000 {
-		n := r.Intn(6)
-
 		var (
+			width    = r.Intn(6)
 			startPct = float01()
 			endPct   = float01()
 		)
-		left, center, right := splitPct(n, startPct, endPct)
 
-		if left+center+right != n {
-			t.Fatalf("FAIL (sum != n): n=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d", n, startPct, endPct, left, center, right)
+		left, center, right := splitScrub(width, startPct, endPct)
+
+		if left+center+right != width {
+			t.Fatalf("FAIL (sum != width): width=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d", width, startPct, endPct, left, center, right)
 		}
 		if left < 0 || center < 0 || right < 0 {
-			t.Fatalf("FAIL (negative values): n=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d", n, startPct, endPct, left, center, right)
+			t.Fatalf("FAIL (negative values): width=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d", width, startPct, endPct, left, center, right)
 		}
-		if n != 0 && center < 1 {
-			t.Fatalf("FAIL (center < 1): n=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d", n, startPct, endPct, left, center, right)
+		if width != 0 && center < 1 {
+			t.Fatalf("FAIL (center < 1): width=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d", width, startPct, endPct, left, center, right)
 		}
 	}
 }

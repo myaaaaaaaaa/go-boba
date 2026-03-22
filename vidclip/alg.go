@@ -16,17 +16,17 @@ func memoize12[A1 comparable, R1, R2 any](f func(A1) (R1, R2)) func(A1) (R1, R2)
 	}
 }
 
-func splitPct(n int, startPct, endPct float64) (left, center, right int) {
+func splitScrub(width int, startPct, endPct float64) (left, center, right int) {
 	if startPct > endPct {
 		startPct, endPct = endPct, startPct
 	}
 	var (
-		startIdx = int(startPct * float64(n))
-		endIdx   = int(endPct * float64(n))
+		startIdx = int(startPct * float64(width))
+		endIdx   = int(endPct * float64(width))
 	)
 
 	if startIdx == endIdx {
-		if startIdx <= (n / 2) {
+		if startIdx <= (width / 2) {
 			endIdx++
 		} else {
 			startIdx--
@@ -34,10 +34,10 @@ func splitPct(n int, startPct, endPct float64) (left, center, right int) {
 	}
 
 	startIdx = max(startIdx, 0)
-	endIdx = min(endIdx, n)
+	endIdx = min(endIdx, width)
 
 	left = startIdx
 	center = endIdx - startIdx
-	right = n - endIdx
+	right = width - endIdx
 	return
 }
