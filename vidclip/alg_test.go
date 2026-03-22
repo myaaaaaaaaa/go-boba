@@ -1,11 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"math"
 	"math/rand"
 	"testing"
-	"testing/quick"
 )
 
 // TestMemoize12_Basic checks that calling the memoized function multiple times
@@ -45,59 +42,53 @@ func TestMemoize12_Basic(t *testing.T) {
 // the memoized function returns the exact same results as the
 // original un-memoized function across a wide range of random inputs.
 func TestMemoize12_Property(t *testing.T) {
+	r := rand.New(rand.NewSource(4))
 	f := func(x int) (int, int) {
 		return x * 2, x + 10
 	}
 	memoized := memoize12(f)
 
-	prop := func(x int) bool {
+	for range 1000 {
+		x := r.Int()
 		f1, f2 := f(x)
 		m1, m2 := memoized(x)
-		return f1 == m1 && f2 == m2
-	}
-
-	if err := quick.Check(prop, &quick.Config{MaxCount: 1000}); err != nil {
-		t.Error(err)
+		if f1 != m1 || f2 != m2 {
+			t.Fatalf("memoized(%d) = (%d, %d), expected (%d, %d)", x, m1, m2, f1, f2)
+		}
 	}
 }
 
 func TestSplitPct_Property(t *testing.T) {
-	rawToFloat := func(raw uint32) float64 {
-		switch raw % 10 {
+	r := rand.New(rand.NewSource(4))
+
+	float01 := func() float64 {
+		switch r.Intn(10) {
 		case 0:
-			return 0.0
+			return 0
 		case 1:
-			return 1.0
+			return 1
 		default:
-			return float64(raw) / float64(math.MaxUint32)
+			return r.Float64()
 		}
 	}
-	prop := func(rawN uint8, rawS, rawE uint32) bool {
-		n := int(rawN % 6)
+
+	for range 10000 {
+		n := r.Intn(6)
 
 		var (
-			startPct = rawToFloat(rawS)
-			endPct   = rawToFloat(rawE)
+			startPct = float01()
+			endPct   = float01()
 		)
-
 		left, center, right := splitPct(n, startPct, endPct)
 
 		if left+center+right != n {
-			fmt.Printf("FAIL (sum != n): n=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d\n", n, startPct, endPct, left, center, right)
-			return false
+			t.Fatalf("FAIL (sum != n): n=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d", n, startPct, endPct, left, center, right)
+		}
+		if left < 0 || center < 0 || right < 0 {
+			t.Fatalf("FAIL (negative values): n=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d", n, startPct, endPct, left, center, right)
 		}
 		if n != 0 && center < 1 {
-			fmt.Printf("FAIL (center < 1): n=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d\n", n, startPct, endPct, left, center, right)
-			return false
+			t.Fatalf("FAIL (center < 1): n=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d", n, startPct, endPct, left, center, right)
 		}
-		return true
-	}
-
-	config := quick.Config{
-		MaxCount: 10000,
-		Rand:     rand.New(rand.NewSource(4)),
-	}
-	if err := quick.Check(prop, &config); err != nil {
-		t.Error(err)
 	}
 }
