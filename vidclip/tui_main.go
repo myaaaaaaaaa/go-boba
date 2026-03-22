@@ -196,11 +196,18 @@ func (m model) View() string {
 	s.WriteString("\n\n\n")
 
 	// Summary Section
+	clipDuration := 0.0
 	totalDuration := 0.0
-	for _, clip := range m.clips {
-		totalDuration += clip.Times[1] - clip.Times[0]
+	for i, clip := range m.clips {
+		duration := clip.Times[1] - clip.Times[0]
+		if i == m.cursor {
+			clipDuration = duration
+		}
+		totalDuration += duration
 	}
-	s.WriteString(fmt.Sprintf("Total Duration: %0.1fs\n", totalDuration))
+	s.WriteString(defaultStyle.Render(fmt.Sprintf("Clip %s    ", formatTime(clipDuration))))
+	s.WriteString(defaultStyle.Render(fmt.Sprintf("Total %s", formatTime(totalDuration))))
+	s.WriteString("\n")
 
 	// Assembled Timeline Bar
 	timelineWidth := m.size.Width - 2
