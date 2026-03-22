@@ -162,3 +162,37 @@ func TestFormatDuration_Property(t *testing.T) {
 		}
 	}
 }
+
+func randomStringOf(r *rand.Rand, chars string) string {
+	b := make([]byte, r.Intn(10))
+	for i := range b {
+		b[i] = chars[r.Intn(len(chars))]
+	}
+	return string(b)
+}
+
+func TestCutZeroes_Property(t *testing.T) {
+	r := rand.New(rand.NewSource(4))
+
+	for range 10000 {
+		leftGen := randomStringOf(r, "0:.")
+		rightGen := "1" + randomStringOf(r, "19:.")
+		switch r.Intn(10) {
+		case 0:
+			leftGen = ""
+		case 1:
+			rightGen = ""
+		}
+
+		input := leftGen + rightGen
+		left, right := cutZeroes(input)
+
+		if left+right != input {
+			t.Fatalf("left+right != input: %q + %q != %q", left, right, input)
+		}
+
+		if left != leftGen || right != rightGen {
+			t.Fatalf("cutZeroes did not return original strings: expected (%q, %q), got (%q, %q)", leftGen, rightGen, left, right)
+		}
+	}
+}

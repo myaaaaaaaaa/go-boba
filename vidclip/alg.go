@@ -30,6 +30,14 @@ func formatDuration(seconds float64) string {
 	frac := tenths % 10
 	return fmt.Sprintf("%02d:%02d:%02d.%d", hours, minutes, secs, frac)
 }
+func cutZeroes(s string) (left, right string) {
+	for i, r := range s {
+		if '1' <= r && r <= '9' {
+			return s[:i], s[i:]
+		}
+	}
+	return s, ""
+}
 
 func splitScrub(width int, startPct, endPct float64) (left, center, right int) {
 	if startPct > endPct {
