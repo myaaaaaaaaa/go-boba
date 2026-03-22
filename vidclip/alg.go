@@ -75,10 +75,7 @@ func splitTimeline(width int, durations []float64) []int {
 		accumulatedFloat += (d / totalDuration) * float64(width)
 		expected := int(accumulatedFloat + 0.5)
 		w := expected - accumulatedInt
-		if w <= 0 && d > 0 {
-			w = 1
-		}
-		w = max(w, 0)
+		w = max(w, 1)
 		segmentWidths[i] = w
 		accumulatedInt += w
 	}

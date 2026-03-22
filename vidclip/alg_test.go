@@ -58,25 +58,25 @@ func TestMemoize12_Property(t *testing.T) {
 	}
 }
 
+func float01(r *rand.Rand) float64 {
+	switch r.Intn(10) {
+	case 0:
+		return 0
+	case 1:
+		return 1
+	default:
+		return r.Float64()
+	}
+}
+
 func TestSplitScrub_Property(t *testing.T) {
 	r := rand.New(rand.NewSource(4))
-
-	float01 := func() float64 {
-		switch r.Intn(10) {
-		case 0:
-			return 0
-		case 1:
-			return 1
-		default:
-			return r.Float64()
-		}
-	}
 
 	for range 10000 {
 		var (
 			width    = r.Intn(6)
-			startPct = float01()
-			endPct   = float01()
+			startPct = float01(r)
+			endPct   = float01(r)
 		)
 
 		left, center, right := splitScrub(width, startPct, endPct)
@@ -101,7 +101,7 @@ func TestSplitTimeline_Property(t *testing.T) {
 
 		var durations []float64
 		for range r.Intn(10) + 1 {
-			durations = append(durations, r.Float64()*10)
+			durations = append(durations, float01(r)*10)
 		}
 
 		segmentWidths := splitTimeline(width, durations)
@@ -115,7 +115,7 @@ func TestSplitTimeline_Property(t *testing.T) {
 			if w < 0 {
 				t.Fatalf("negative segment width: %d at index %d", w, i)
 			}
-			if w == 0 && durations[i] > 0 {
+			if w == 0 {
 				availableWidth := width - (len(durations) - 1)
 				if availableWidth >= len(durations) {
 					t.Fatalf("segment width 0 for non-zero duration: %v, widths: %v", durations, segmentWidths)
