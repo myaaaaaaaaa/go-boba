@@ -122,37 +122,6 @@ func formatTime(seconds float64) string {
 	return fmt.Sprintf("%02d:%04.1f", minutes, secs)
 }
 
-func (m model) renderScrubBar(startPct, endPct float64, width int, isSelected bool) string {
-	barWidth := width
-	startIdx := int(startPct * float64(barWidth))
-	endIdx := int(endPct * float64(barWidth))
-
-	if startIdx < 0 {
-		startIdx = 0
-	}
-	if endIdx > barWidth {
-		endIdx = barWidth
-	}
-	if endIdx < startIdx {
-		endIdx = startIdx
-	}
-
-	fgStyle := blueStyle
-	if !isSelected {
-		fgStyle = faintStyle
-	}
-
-	var bar strings.Builder
-	for i := range barWidth {
-		if i >= startIdx && i < endIdx {
-			bar.WriteString(fgStyle.Render("━"))
-		} else {
-			bar.WriteString(subtleStyle.Render("─"))
-		}
-	}
-	return bar.String()
-}
-
 func index[T any](s []T, i int) T {
 	if 0 <= i && i < len(s) {
 		return s[i]
@@ -204,7 +173,18 @@ func (m model) View() string {
 
 		scrubBar := ""
 		if sourceDuration != 0 {
-			scrubBar = m.renderScrubBar(clip.Times[0]/sourceDuration, clip.Times[1]/sourceDuration, contentWidth, isSelected)
+			fgStyle := blueStyle
+			if !isSelected {
+				fgStyle = faintStyle
+			}
+			left, center, right := splitPct(
+				contentWidth,
+				clip.Times[0]/sourceDuration,
+				clip.Times[1]/sourceDuration,
+			)
+			scrubBar += subtleStyle.Render(strings.Repeat("─", left))
+			scrubBar += fgStyle.Render(strings.Repeat("━", center))
+			scrubBar += subtleStyle.Render(strings.Repeat("─", right))
 		}
 		if clip.Source == index(m.clips, i+1).Source {
 			scrubBar = strings.ReplaceAll(scrubBar, "─", " ")

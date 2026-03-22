@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"math"
+	"math/rand"
 	"testing"
 	"testing/quick"
 )
@@ -54,6 +57,47 @@ func TestMemoize12_Property(t *testing.T) {
 	}
 
 	if err := quick.Check(prop, &quick.Config{MaxCount: 1000}); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestSplitPct_Property(t *testing.T) {
+	rawToFloat := func(raw uint32) float64 {
+		switch raw % 10 {
+		case 0:
+			return 0.0
+		case 1:
+			return 1.0
+		default:
+			return float64(raw) / float64(math.MaxUint32)
+		}
+	}
+	prop := func(rawN uint8, rawS, rawE uint32) bool {
+		n := int(rawN % 6)
+
+		var (
+			startPct = rawToFloat(rawS)
+			endPct   = rawToFloat(rawE)
+		)
+
+		left, center, right := splitPct(n, startPct, endPct)
+
+		if left+center+right != n {
+			fmt.Printf("FAIL (sum != n): n=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d\n", n, startPct, endPct, left, center, right)
+			return false
+		}
+		if n != 0 && center < 1 {
+			fmt.Printf("FAIL (center < 1): n=%d, startPct=%f, endPct=%f => left=%d, center=%d, right=%d\n", n, startPct, endPct, left, center, right)
+			return false
+		}
+		return true
+	}
+
+	config := quick.Config{
+		MaxCount: 10000,
+		Rand:     rand.New(rand.NewSource(4)),
+	}
+	if err := quick.Check(prop, &config); err != nil {
 		t.Error(err)
 	}
 }
