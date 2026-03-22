@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"math/rand/v2"
 	"os"
 	"os/exec"
@@ -116,12 +115,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func formatTime(seconds float64) string {
-	minutes := int(seconds) / 60
-	secs := math.Mod(seconds, 60)
-	return fmt.Sprintf("%02d:%04.1f", minutes, secs)
-}
-
 func index[T any](s []T, i int) T {
 	if 0 <= i && i < len(s) {
 		return s[i]
@@ -151,8 +144,8 @@ func (m model) View() string {
 		sourceDuration, _ := m.durationOf(clip.Source)
 
 		timeStrs := [2]string{
-			formatTime(clip.Times[0]),
-			formatTime(clip.Times[1]),
+			formatDuration(clip.Times[0]),
+			formatDuration(clip.Times[1]),
 		}
 		if isSelected {
 			timeStrs[m.cursorCol] = blueStyle.Bold(true).Render(timeStrs[m.cursorCol])
@@ -161,7 +154,7 @@ func (m model) View() string {
 		clipDuration := clip.Times[1] - clip.Times[0]
 		leftTop := faintStyle.Render(timeStrs[0]) + faintStyle.Render(" - ") + faintStyle.Render(timeStrs[1]) + defaultStyle.Render(fmt.Sprintf("    (%0.1fs)", clipDuration))
 
-		metadata := clip.Source + "  " + formatTime(sourceDuration)
+		metadata := clip.Source + "  " + formatDuration(sourceDuration)
 		if clip.Source == index(m.clips, i-1).Source {
 			metadata = ""
 		}
@@ -205,8 +198,8 @@ func (m model) View() string {
 		}
 		totalDuration += duration
 	}
-	s.WriteString(defaultStyle.Render(fmt.Sprintf("Clip %s    ", formatTime(clipDuration))))
-	s.WriteString(defaultStyle.Render(fmt.Sprintf("Total %s", formatTime(totalDuration))))
+	s.WriteString(defaultStyle.Render(fmt.Sprintf("Clip %s    ", formatDuration(clipDuration))))
+	s.WriteString(defaultStyle.Render(fmt.Sprintf("Total %s", formatDuration(totalDuration))))
 	s.WriteString("\n")
 
 	// Assembled Timeline Bar

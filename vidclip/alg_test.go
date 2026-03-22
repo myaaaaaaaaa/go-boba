@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"math"
 	"math/rand"
 	"testing"
 )
@@ -128,6 +130,35 @@ func TestSplitTimeline_Property(t *testing.T) {
 		expectedSum = max(expectedSum, 0)
 		if sum != expectedSum {
 			t.Fatalf("expected sum %d, got %d. width=%d, numClips=%d", expectedSum, sum, width, len(durations))
+		}
+	}
+}
+
+func parseDurationForTest(str string) float64 {
+	var h, m, s float64
+	fmt.Sscanf(str, "%f:%f:%f", &h, &m, &s)
+	return h*3600 + m*60 + s
+}
+
+func TestFormatDuration_Property(t *testing.T) {
+	r := rand.New(rand.NewSource(4))
+	for range 10000 {
+		// Test up to 99 hours: 99 hours * 3600 = 356400 seconds
+		secs := r.Float64() * 356400
+
+		formatted := formatDuration(secs)
+		if len(formatted) != 10 {
+			t.Fatalf("expected length 10, got %d (%q) for %f", len(formatted), formatted, secs)
+		}
+
+		parsed := parseDurationForTest(formatted)
+		if math.Abs(parsed-secs) >= 0.5 {
+			t.Fatalf("expected diff < 0.5, got %f for %f (formatted: %q)", math.Abs(parsed-secs), secs, formatted)
+		}
+
+		formatted2 := formatDuration(parsed)
+		if formatted2 != formatted {
+			t.Fatalf("%s != %s", formatted, formatted2)
 		}
 	}
 }

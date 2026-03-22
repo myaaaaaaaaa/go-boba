@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"slices"
 )
@@ -19,6 +20,15 @@ func memoize12[A1 comparable, R1, R2 any](f func(A1) (R1, R2)) func(A1) (R1, R2)
 		cache[arg] = thunk
 		return thunk()
 	}
+}
+
+func formatDuration(seconds float64) string {
+	tenths := int(math.Round(seconds * 10))
+	hours := tenths / 36000
+	minutes := (tenths / 600) % 60
+	secs := (tenths / 10) % 60
+	frac := tenths % 10
+	return fmt.Sprintf("%02d:%02d:%02d.%d", hours, minutes, secs, frac)
 }
 
 func splitScrub(width int, startPct, endPct float64) (left, center, right int) {
