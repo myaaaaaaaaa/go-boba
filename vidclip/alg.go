@@ -1,6 +1,9 @@
 package main
 
-import "math"
+import (
+	"math"
+	"slices"
+)
 
 func memoize12[A1 comparable, R1, R2 any](f func(A1) (R1, R2)) func(A1) (R1, R2) {
 	cache := make(map[A1]func() (R1, R2))
@@ -52,30 +55,21 @@ func splitTimeline(width int, durations []float64) []int {
 	width = width - (len(durations) - 1)
 	width = max(width, 0)
 
-	segmentWidths := make([]int, len(durations))
+	durations = slices.Clone(durations)
 	var totalDuration float64
-	for _, d := range durations {
-		totalDuration += d
-	}
-
-	if totalDuration == 0 {
-		for i := range segmentWidths {
-			segmentWidths[i] = width / len(durations)
-		}
-		sum := 0
-		for _, w := range segmentWidths {
-			sum += w
-		}
-		segmentWidths[len(segmentWidths)-1] += width - sum
-		return segmentWidths
+	for d := range durations {
+		d := &durations[d]
+		*d = max(*d, 0.001)
+		totalDuration += *d
 	}
 
 	var accumulatedInt int
 
-	for i, d := range durations {
+	var segmentWidths []int
+	for _, d := range durations {
 		w := int(math.Ceil(float64(width) * d / totalDuration))
 		w = max(w, 1)
-		segmentWidths[i] = w
+		segmentWidths = append(segmentWidths, w)
 		accumulatedInt += w
 	}
 
