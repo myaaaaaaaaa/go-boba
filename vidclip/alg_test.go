@@ -97,7 +97,7 @@ func TestSplitTimeline_Property(t *testing.T) {
 	r := rand.New(rand.NewSource(4))
 
 	for range 10000 {
-		width := r.Intn(20) + 1 // at least 1
+		width := r.Intn(20)
 
 		var durations []float64
 		for range r.Intn(10) + 1 {
