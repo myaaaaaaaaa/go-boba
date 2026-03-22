@@ -203,20 +203,16 @@ func (m model) View() string {
 	s.WriteString(fmt.Sprintf("Total Duration: %0.1fs\n", totalDuration))
 
 	// Assembled Timeline Bar
-	timelineWidth := max(m.size.Width-4, 40)
+	timelineWidth := m.size.Width - 2
+
+	var durations []float64
+	for _, clip := range m.clips {
+		durations = append(durations, clip.Times[1]-clip.Times[0])
+	}
+	segmentWidths := splitTimeline(timelineWidth, durations)
 
 	var timeline strings.Builder
-	for i, clip := range m.clips {
-		clipDuration := clip.Times[1] - clip.Times[0]
-		segmentWidth := 0
-		if totalDuration > 0 {
-			segmentWidth = int((clipDuration / totalDuration) * float64(timelineWidth-len(m.clips)))
-		}
-		if segmentWidth <= 0 && clipDuration > 0 {
-			segmentWidth = 1
-		}
-		segmentWidth = max(0, segmentWidth)
-
+	for i, segmentWidth := range segmentWidths {
 		char := "─"
 		style := subtleStyle
 		if i == m.cursor {
@@ -224,10 +220,8 @@ func (m model) View() string {
 			char = "━"
 		}
 
+		timeline.WriteString(" ") // Visual gap between clips
 		timeline.WriteString(style.Render(strings.Repeat(char, segmentWidth)))
-		if i < len(m.clips)-1 {
-			timeline.WriteString(" ") // Visual gap between clips
-		}
 	}
 	s.WriteString(timeline.String() + "\n\n")
 

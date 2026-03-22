@@ -92,3 +92,42 @@ func TestSplitScrub_Property(t *testing.T) {
 		}
 	}
 }
+
+func TestSplitTimeline_Property(t *testing.T) {
+	r := rand.New(rand.NewSource(4))
+
+	for range 10000 {
+		width := r.Intn(20) + 1 // at least 1
+
+		var durations []float64
+		for range r.Intn(10) + 1 {
+			durations = append(durations, r.Float64()*10)
+		}
+
+		segmentWidths := splitTimeline(width, durations)
+
+		if len(segmentWidths) != len(durations) {
+			t.Fatalf("expected %d segments, got %d", len(durations), len(segmentWidths))
+		}
+
+		sum := 0
+		for i, w := range segmentWidths {
+			if w < 0 {
+				t.Fatalf("negative segment width: %d at index %d", w, i)
+			}
+			if w == 0 && durations[i] > 0 {
+				availableWidth := width - (len(durations) - 1)
+				if availableWidth >= len(durations) {
+					t.Fatalf("segment width 0 for non-zero duration: %v, widths: %v", durations, segmentWidths)
+				}
+			}
+			sum += w
+		}
+
+		expectedSum := width - (len(durations) - 1)
+		expectedSum = max(expectedSum, 0)
+		if sum != expectedSum {
+			t.Fatalf("expected sum %d, got %d. width=%d, numClips=%d", expectedSum, sum, width, len(durations))
+		}
+	}
+}
