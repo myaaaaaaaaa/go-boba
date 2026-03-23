@@ -35,7 +35,7 @@ var (
 	subtleStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("254"))            // Light gray for scrub bg
 	cyanStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("6"))              // Cyan header
 	errorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true) // Salmon/Red
-	blueStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("20"))             // Active Blue
+	blueStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("4"))              // Active Blue
 )
 
 func (m model) Init() tea.Cmd {
