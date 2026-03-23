@@ -31,11 +31,11 @@ type model struct {
 // Styles for the TUI components.
 var (
 	defaultStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("238"))            // Dark gray/black
-	faintStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("251"))            // Medium gray for inactive
-	subtleStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("251"))            // Light gray for scrub bg
+	faintStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("246"))            // Medium gray for inactive
+	subtleStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("254"))            // Light gray for scrub bg
 	cyanStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("6"))              // Cyan header
 	errorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("203")).Bold(true) // Salmon/Red
-	blueStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))             // Active Blue
+	blueStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("20"))             // Active Blue
 )
 
 func (m model) Init() tea.Cmd {
@@ -124,6 +124,14 @@ func index[T any](s []T, i int) T {
 	return zero
 }
 
+func styleDuration(style lipgloss.Style, duration float64) string {
+	left, right := cutZeroes(formatDuration(duration))
+	left = subtleStyle.Render(left)
+	//left = strings.Repeat(" ", len(left))
+	right = style.Render(right)
+	return left + right
+}
+
 func (m model) View() string {
 	var s strings.Builder
 
@@ -143,22 +151,24 @@ func (m model) View() string {
 		isSelected := (i == m.cursor)
 		sourceDuration, _ := m.durationOf(clip.Source)
 
-		timeStrs := [2]string{
-			formatDuration(clip.Times[0]),
-			formatDuration(clip.Times[1]),
+		timeStyles := [...]lipgloss.Style{
+			faintStyle,
+			faintStyle,
 		}
 		if isSelected {
-			timeStrs[m.cursorCol] = blueStyle.Bold(true).Render(timeStrs[m.cursorCol])
+			timeStyles[m.cursorCol] = blueStyle.Bold(true)
 		}
 
-		clipDuration := clip.Times[1] - clip.Times[0]
-		leftTop := faintStyle.Render(timeStrs[0]) + faintStyle.Render(" - ") + faintStyle.Render(timeStrs[1]) + defaultStyle.Render(fmt.Sprintf("    (%0.1fs)", clipDuration))
+		var leftTop string
+		leftTop += styleDuration(timeStyles[0], clip.Times[0])
+		leftTop += faintStyle.Render(" - ")
+		leftTop += styleDuration(timeStyles[1], clip.Times[1])
+		leftTop += defaultStyle.Render(fmt.Sprintf("    (%0.1fs)", clip.Times[1]-clip.Times[0]))
 
-		metadata := clip.Source + "  " + formatDuration(sourceDuration)
+		rightTop := defaultStyle.Render(clip.Source) + "  " + styleDuration(defaultStyle, sourceDuration)
 		if clip.Source == index(m.clips, i-1).Source {
-			metadata = ""
+			rightTop = ""
 		}
-		rightTop := defaultStyle.Render(metadata)
 
 		contentWidth := m.size.Width
 
@@ -198,8 +208,10 @@ func (m model) View() string {
 		}
 		totalDuration += duration
 	}
-	s.WriteString(defaultStyle.Render(fmt.Sprintf("Clip %s    ", formatDuration(clipDuration))))
-	s.WriteString(defaultStyle.Render(fmt.Sprintf("Total %s", formatDuration(totalDuration))))
+	s.WriteString(defaultStyle.Render("Clip "))
+	s.WriteString(styleDuration(defaultStyle, clipDuration))
+	s.WriteString(defaultStyle.Render("    Total "))
+	s.WriteString(styleDuration(defaultStyle, totalDuration))
 	s.WriteString("\n")
 
 	// Assembled Timeline Bar
