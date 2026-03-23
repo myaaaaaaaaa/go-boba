@@ -30,13 +30,8 @@ func mpvChooseTime(video string, t *float64) {
 	}
 
 	// Ensure cleanup of the process and socket
-	defer func() {
-		// We ignore the error here because the process might have already exited
-		if cmd.Process != nil {
-			cmd.Process.Kill()
-		}
-		os.Remove(socketPath)
-	}()
+	defer os.Remove(socketPath)
+	defer cmd.Wait()
 
 	// Connect to the IPC socket
 	var conn net.Conn
@@ -58,9 +53,6 @@ func mpvChooseTime(video string, t *float64) {
 			*t = timePos
 		})
 	}
-
-	// Wait for mpv to finish
-	cmd.Wait()
 }
 
 func parseTimePosEvent(line string, timePosEvent func(timePos float64)) {
@@ -71,7 +63,8 @@ func parseTimePosEvent(line string, timePosEvent func(timePos float64)) {
 	}
 
 	if err := json.Unmarshal([]byte(line), &event); err != nil {
-		fmt.Println("invalid message:", line)
+		//Too many ways for valid events to trip this
+		//panic(fmt.Errorf("invalid message: %v: %s", err, line))
 	}
 
 	switch {

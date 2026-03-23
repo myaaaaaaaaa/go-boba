@@ -27,13 +27,7 @@ func main() {
 		tui("")
 		return
 	}
-	{
-		file := args[len(args)-1]
-		if _, err := os.Stat(file); err == nil {
-			tui(file)
-			return
-		}
-	}
+
 	exeName := tryPop(&args, "")
 	subcmd := tryPop(&args, "")
 
@@ -58,6 +52,6 @@ func main() {
 		fmt.Println("duration:", d)
 
 	default:
-		failIf(true, "Unknown subcommand: %s", subcmd)
+		tui(os.Args[1])
 	}
 }
