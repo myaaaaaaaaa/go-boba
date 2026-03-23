@@ -170,9 +170,10 @@ func (m model) View() string {
 			rightTop = ""
 		}
 
-		contentWidth := m.size.Width
-
-		topRow := leftTop + strings.Repeat(" ", max(0, contentWidth-lipgloss.Width(leftTop)-lipgloss.Width(rightTop))) + rightTop
+		s.WriteString(leftTop)
+		s.WriteString(strings.Repeat(" ", max(0, m.size.Width-lipgloss.Width(leftTop)-lipgloss.Width(rightTop))))
+		s.WriteString(rightTop)
+		s.WriteString("\n")
 
 		scrubBar := ""
 		if sourceDuration != 0 {
@@ -181,7 +182,7 @@ func (m model) View() string {
 				fgStyle = faintStyle
 			}
 			left, center, right := splitScrub(
-				contentWidth-2,
+				m.size.Width-2,
 				clip.Times[0]/sourceDuration,
 				clip.Times[1]/sourceDuration,
 			)
@@ -194,7 +195,8 @@ func (m model) View() string {
 			scrubBar = strings.ReplaceAll(scrubBar, "─", " ")
 		}
 
-		s.WriteString(fmt.Sprintf("%s\n%s\n\n", topRow, scrubBar))
+		s.WriteString(scrubBar)
+		s.WriteString("\n\n")
 	}
 
 	{
@@ -205,7 +207,6 @@ func (m model) View() string {
 		}
 		segmentWidths := splitTimeline(m.size.Width-2, durations)
 
-		var timeline strings.Builder
 		for i, segmentWidth := range segmentWidths {
 			char := "─"
 			style := subtleStyle
@@ -213,10 +214,9 @@ func (m model) View() string {
 				style = blueStyle
 				char = "━"
 			}
-			timeline.WriteString(" ") // Visual gap between clips
-			timeline.WriteString(style.Render(strings.Repeat(char, segmentWidth)))
+			s.WriteString(" ") // Visual gap between clips
+			s.WriteString(style.Render(strings.Repeat(char, segmentWidth)))
 		}
-		s.WriteString(timeline.String())
 		s.WriteString("\n")
 	}
 
