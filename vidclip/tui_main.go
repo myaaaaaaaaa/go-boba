@@ -181,10 +181,11 @@ func (m model) View() string {
 				fgStyle = faintStyle
 			}
 			left, center, right := splitScrub(
-				contentWidth,
+				contentWidth-2,
 				clip.Times[0]/sourceDuration,
 				clip.Times[1]/sourceDuration,
 			)
+			scrubBar += " "
 			scrubBar += subtleStyle.Render(strings.Repeat("─", left))
 			scrubBar += fgStyle.Render(strings.Repeat("━", center))
 			scrubBar += subtleStyle.Render(strings.Repeat("─", right))
@@ -196,46 +197,46 @@ func (m model) View() string {
 		s.WriteString(fmt.Sprintf("%s\n%s\n\n", topRow, scrubBar))
 	}
 
-	s.WriteString("\n\n\n")
-
-	// Summary Section
-	clipDuration := 0.0
-	totalDuration := 0.0
-	for i, clip := range m.clips {
-		duration := clip.Times[1] - clip.Times[0]
-		if i == m.cursor {
-			clipDuration = duration
+	{
+		// Assembled Timeline Bar
+		var durations []float64
+		for _, clip := range m.clips {
+			durations = append(durations, clip.Times[1]-clip.Times[0])
 		}
-		totalDuration += duration
-	}
-	s.WriteString(defaultStyle.Render("Clip "))
-	s.WriteString(styleDuration(defaultStyle, clipDuration))
-	s.WriteString(defaultStyle.Render("    Total "))
-	s.WriteString(styleDuration(defaultStyle, totalDuration))
-	s.WriteString("\n")
+		segmentWidths := splitTimeline(m.size.Width-2, durations)
 
-	// Assembled Timeline Bar
-	timelineWidth := m.size.Width - 2
-
-	var durations []float64
-	for _, clip := range m.clips {
-		durations = append(durations, clip.Times[1]-clip.Times[0])
-	}
-	segmentWidths := splitTimeline(timelineWidth, durations)
-
-	var timeline strings.Builder
-	for i, segmentWidth := range segmentWidths {
-		char := "─"
-		style := subtleStyle
-		if i == m.cursor {
-			style = blueStyle
-			char = "━"
+		var timeline strings.Builder
+		for i, segmentWidth := range segmentWidths {
+			char := "─"
+			style := subtleStyle
+			if i == m.cursor {
+				style = blueStyle
+				char = "━"
+			}
+			timeline.WriteString(" ") // Visual gap between clips
+			timeline.WriteString(style.Render(strings.Repeat(char, segmentWidth)))
 		}
-
-		timeline.WriteString(" ") // Visual gap between clips
-		timeline.WriteString(style.Render(strings.Repeat(char, segmentWidth)))
+		s.WriteString(timeline.String())
+		s.WriteString("\n")
 	}
-	s.WriteString(timeline.String() + "\n\n")
+
+	{
+		// Summary Section
+		clipDuration := 0.0
+		totalDuration := 0.0
+		for i, clip := range m.clips {
+			duration := clip.Times[1] - clip.Times[0]
+			if i == m.cursor {
+				clipDuration = duration
+			}
+			totalDuration += duration
+		}
+		s.WriteString(defaultStyle.Render("Clip "))
+		s.WriteString(styleDuration(defaultStyle, clipDuration))
+		s.WriteString(defaultStyle.Render("    Total "))
+		s.WriteString(styleDuration(defaultStyle, totalDuration))
+		s.WriteString("\n")
+	}
 
 	// Status/Error Bar
 	s.WriteString(errorStyle.Render(m.err))

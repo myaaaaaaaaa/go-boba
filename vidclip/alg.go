@@ -40,6 +40,7 @@ func cutZeroes(s string) (left, right string) {
 }
 
 func splitScrub(width int, startPct, endPct float64) (left, center, right int) {
+	width = max(width, 0)
 	if startPct > endPct {
 		startPct, endPct = endPct, startPct
 	}
