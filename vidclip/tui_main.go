@@ -45,6 +45,7 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
+		m.err = ""
 		switch msg.String() {
 		case "esc", "ctrl+c", "q":
 			return m, tea.Quit
@@ -100,6 +101,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			go exec.Command("mpv", file).Run()
 		case "enter":
 			clip := &m.clips[m.cursor]
+			_, err := m.durationOf(clip.Source)
+			if err != nil {
+				break
+			}
 			m.changeTime(clip.Source, &clip.Times[m.cursorCol])
 			if clip.Times[0] > clip.Times[1] {
 				clip.Times[0], clip.Times[1] = clip.Times[1], clip.Times[0]
@@ -149,7 +154,7 @@ func (m model) View() string {
 	// Media Clip List
 	for i, clip := range m.clips {
 		isSelected := (i == m.cursor)
-		sourceDuration, _ := m.durationOf(clip.Source)
+		sourceDuration, durationErr := m.durationOf(clip.Source)
 
 		timeStyles := [...]lipgloss.Style{
 			faintStyle,
@@ -193,6 +198,9 @@ func (m model) View() string {
 		}
 		if clip.Source == index(m.clips, i+1).Source {
 			scrubBar = strings.ReplaceAll(scrubBar, "─", " ")
+		}
+		if durationErr != nil {
+			scrubBar = errorStyle.Render(durationErr.Error())
 		}
 
 		s.WriteString(scrubBar)
@@ -265,15 +273,17 @@ func tui(file string) {
 		m.clips = EditList{
 			{Source: "sotu_2024_raw.mp4", Times: [2]float64{120.5, 145.6}},
 			{Source: "sotu_2024_raw.mp4", Times: [2]float64{150.5, 165.6}},
-			{Source: "sotu_2024_raw.mp4", Times: [2]float64{180.5, 200.1}},
+			{Source: "hello.jpg", Times: [2]float64{180.5, 200.1}},
 			{Source: "gameplay_capture_01.mkv", Times: [2]float64{340.1, 385.3}},
 			{Source: "outro.mp4", Times: [2]float64{0.0, 5.5}},
 		}
 
 		m.cursor = 1
-		m.err = "error: could not open hello.jpg: not a video file"
 
 		m.durationOf = memoize12(func(filename string) (float64, error) {
+			if !isVideo(filename) {
+				return 0, fmt.Errorf("not a video file: %s", filename)
+			}
 			return float64(len(filename) * 50), nil
 		})
 		m.changeTime = func(video string, t *float64) {
